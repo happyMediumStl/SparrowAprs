@@ -1,0 +1,46 @@
+Desc,Part Number,Circ Ref,DK PN,Link
+IC MCU 32BIT 1MB FLASH 64LQFP,STM32F405RGT6TR,IC1,497-17432-1-ND,https://www.digikey.com/products/en/integrated-circuits-ics/embedded-microcontrollers/685?k=stm32f4&k=&pkeyword=stm32f4&pv1291=821&FV=ffe002ad%2C1c0002%2C23c0167&quantity=0&ColumnSort=0&page=1&pageSize=25
+IC REG BCK BST 3.3V 0.5A HOTROD,TPS63051RMWR,IC3,296-42650-1-ND,https://www.digikey.com/product-detail/en/texas-instruments/TPS63051RMWR/296-42650-1-ND/5455915
+IC RECEIVER GPS/GNSS 24LCC,NEO-M8Q-0,IC2,672-1009-1-ND,https://www.digikey.com/product-detail/en/u-blox-america-inc/NEO-M8Q-0/672-1009-1-ND/6150672
+SENSOR PRESSURE HUMIDITY TEMP,BME280,IC4,828-1063-1-ND,https://www.digikey.com/product-detail/en/bosch-sensortec/BME280/828-1063-1-ND/6136314
+,,,,
+CONN MINI USB RCPT RA TYPE B SMD,,J1,690-005-299-043,https://www.digikey.com/product-detail/en/edac-inc/690-005-299-043/151-1206-1-ND/4312192
+CONN HEADER 2POS 3MM RT ANG GOLD,436500201,J2,WM1865-ND,https://www.digikey.com/product-detail/en/molex-llc/0436500201/WM1865-ND/268994
+,,J3,,
+CONN SMA RCPT STR 50OHM EDGE MNT,732511150,"J4, J5",WM5534-ND,https://www.digikey.com/product-detail/en/molex-llc/0732511150/WM5534-ND/1465156
+,,,,
+FIXED IND 2.2UH 4.3A 48 MOHM SMD,PA4332.222NLT,,553-3290-1-ND,https://www.digikey.com/product-detail/en/pulse-electronics-power/PA4332.222NLT/553-3290-1-ND/5879016
+,,,,
+CAP CER 0.1UF 16V Y5V 0603,C0603C104Z4VACTU,"C2, C3, C4, C5, C6, C7, C12, C13, C14, C17, C23, C25, C26, C32",399-1098-1-ND,https://www.digikey.com/product-detail/en/kemet/C0603C104Z4VACTU/399-1098-1-ND/411373
+CAP CER 10UF 25V X5R 0805 ,GRM21BR61E106KA73L,"C10, C11, C16, C28, C36, C37, C38", 490-5523-1-ND ,https://www.digikey.com/product-detail/en/murata-electronics-north-america/GRM21BR61E106KA73L/490-5523-1-ND/2334919
+CAP TANT 10UF 10V 20% 1206,TPSA106M010R0900,"C1, C24",478-9034-1-ND,https://www.digikey.com/product-detail/en/avx-corporation/TPSA106M010R0900/478-9034-1-ND/4561900
+CAP CER 22PF 50V C0G/NP0 0603,C0603C220J5GACTU,C22,399-1053-1-ND,https://www.digikey.com/product-detail/en/kemet/C0603C220J5GACTU/399-1053-1-ND/411328
+CAP CER 4.7UF 16V X5R 0805 ,C0805C475K4PACTU,C15, 399-8101-1-ND ,https://www.digikey.com/product-detail/en/kemet/C0805C475K4PACTU/399-8101-1-ND/3471824
+CAP CER 2.2UF 10V X5R 0805,CC0805KRX5R6BB225,"C18, C19",311-3425-1-ND,https://www.digikey.com/product-detail/en/yageo/CC0805KRX5R6BB225/311-3425-1-ND/7164446
+CAP CER 22UF 25V X7R 1210,GRM32ER71E226KE15L,"C30, C29",490-5313-1-ND,https://www.digikey.com/product-detail/en/murata-electronics-north-america/GRM32ER71E226KE15L/490-5313-1-ND/2039092
+CAP CER 1UF 6.3V X5R 0603,C0603C105K9PACTU,"C8, C9",399-7848-1-ND,https://www.digikey.com/product-detail/en/kemet/C0603C105K9PACTU/399-7848-1-ND/3471571
+CAP CER 16PF 50V NPO 0603,CC0603JRNPO9BN160,"C20, C21",311-3964-1-ND,https://www.digikey.com/product-detail/en/yageo/CC0603JRNPO9BN160/311-3964-1-ND/8025053
+,CC0603KRX7R9BB391,C27,311-1187-1-ND,https://www.digikey.com/product-detail/en/yageo/CC0603KRX7R9BB391/311-1187-1-ND/372900
+,,,,
+ FERRITE BEAD 600 OHM 0805 1LN ,HZ0805E601R-10 ,L1, 240-2399-1-ND ,https://www.digikey.com/products/en?keywords=240-2399-1-ND
+FIXED IND 2.2UH 4.3A 48 MOHM SMD,PA4332.222NLT,L2,553-3290-1-ND,https://www.digikey.com/product-detail/en/pulse-electronics-power/PA4332.222NLT/553-3290-1-ND/5879016
+,,L3,,
+,,L4,,
+FIXED IND 82NH 250MA 600 MOHM,LQW18AN82NJ00D,L5,490-6913-1-ND,https://www.digikey.com/product-detail/en/murata-electronics-north-america/LQW18AN82NJ00D/490-6913-1-ND/3846110
+,,,,
+ DIODE SCHOTTKY 30V 1A SMA ,STPS130A,D5, 497-3755-1-ND ,https://www.digikey.com/product-detail/en/stmicroelectronics/STPS130A/497-3755-1-ND/691925
+ LED BLUE CLEAR 0805 SMD , LTST-C171TBKT ,"D1, D2, D3, D4", 160-1645-1-ND ,https://www.digikey.com/product-detail/en/lite-on-inc/LTST-C171TBKT/160-1645-1-ND/573585
+ LED WHITE 0805 SMD , LTW-170TK ,"D1, D2, D3, D4", 160-1738-1-ND ,https://www.digikey.com/product-detail/en/lite-on-inc/LTW-170TK/160-1738-1-ND/758710
+ LED ORANGE CLEAR 0805 SMD , LTST-C171AKT ,"D1, D2, D3, D4", 160-1419-1-ND ,https://www.digikey.com/product-detail/en/lite-on-inc/LTST-C171AKT/160-1419-1-ND/386784
+,,,,
+RES SMD 10 OHM 1% 1/10W 0603,RC0603FR-0710RL,R10,311-10.0HRCT-ND,https://www.digikey.com/product-detail/en/yageo/RC0603FR-0710RL/311-10.0HRCT-ND/729826
+RES 10K OHM 5% 1/10W 0603,RMCF0603JT10K0,R5,RMCF0603JT10K0CT-ND,https://www.digikey.com/product-detail/en/stackpole-electronics-inc/RMCF0603JT10K0/RMCF0603JT10K0CT-ND/1943191
+RES 1K OHM 1% 1/10W 0603,RES 1K OHM 1% 1/10W 0603,"R11, R12, R18",RMCF0603FT1K00CT-ND,https://www.digikey.com/product-detail/en/stackpole-electronics-inc/RMCF0603FT1K00/RMCF0603FT1K00CT-ND/1942996
+RES 330 OHM 5% 1/10W 0603,RMCF0603JT330R,"R6, R7, R8, R9",RMCF0603JT330RCT-ND,https://www.digikey.com/product-detail/en/stackpole-electronics-inc/RMCF0603JT330R/RMCF0603JT330RCT-ND/1943164
+RES 4.7K OHM 5% 1/10W 0603,RMCF0603JT4K70,"R13, R14, R26, R27",RMCF0603JT4K70CT-ND,https://www.digikey.com/product-detail/en/stackpole-electronics-inc/RMCF0603JT4K70/RMCF0603JT4K70CT-ND/1943184
+RES 8.87K OHM 1% 1/10W 0603,RMCF0603FT8K87,R3,RMCF0603FT8K87CT-ND,https://www.digikey.com/product-detail/en/stackpole-electronics-inc/RMCF0603FT8K87/RMCF0603FT8K87CT-ND/1943053
+RES 100 OHM 1% 1/8W 0603,RNCP0603FTD100R,R2,RNCP0603FTD100RCT-ND,https://www.digikey.com/product-detail/en/stackpole-electronics-inc/RNCP0603FTD100R/RNCP0603FTD100RCT-ND/2240425
+RES SMD 46.4K OHM 1% 1/10W 0603,RC0603FR-0746K4L,R16,311-46.4KHRCT-ND,https://www.digikey.com/product-detail/en/yageo/RC0603FR-0746K4L/311-46.4KHRCT-ND/730196
+,,,,
+SWITCH TACTILE SPST-NO 0.05A 12V,,SW1,P16764CT-ND,https://www.digikey.com/product-detail/en/panasonic-electronic-components/EVQ-P7B01P/P16764CT-ND/4429457
+CRYSTAL 25.000MHZ 18PF SMD,ABM8-25.000MHZ-D2-T,X1,535-14397-1-ND,https://www.digikey.com/product-detail/en/abracon-llc/ABM8-25.000MHZ-D2-T/535-14397-1-ND/8582158
