@@ -229,17 +229,17 @@ void DMA2_Stream0_IRQHandler(void)
 {
 	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
-	// Handle half transfer
+	// Handle full transfer complete
 	if(__HAL_DMA_GET_FLAG(&dmaInHandle, DMA_FLAG_TCIF2_6))
 	{
 		__HAL_DMA_CLEAR_FLAG(&dmaInHandle, DMA_FLAG_TCIF2_6);
+		xSemaphoreGiveFromISR(audioInSemiphore, &xHigherPriorityTaskWoken);
 	}
 
-	// Handle full transfer complete
+	// Handle half transfer complete
 	if(__HAL_DMA_GET_FLAG(&dmaInHandle, DMA_FLAG_HTIF2_6))
 	{
 		__HAL_DMA_CLEAR_FLAG(&dmaInHandle, DMA_FLAG_HTIF2_6);
-		xSemaphoreGiveFromISR(audioInSemiphore, &xHigherPriorityTaskWoken);
 	}
 
 	// Handle transfer error 
@@ -260,17 +260,17 @@ void DMA1_Stream5_IRQHandler(void)
 {
 	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
-	// Handle half transfer
+	// Handle full transfer complete
 	if(__HAL_DMA_GET_FLAG(&dmaOutHandle, DMA_FLAG_TCIF1_5))
 	{
 		__HAL_DMA_CLEAR_FLAG(&dmaOutHandle, DMA_FLAG_TCIF1_5);
+		xSemaphoreGiveFromISR(audioOutSemiphore, &xHigherPriorityTaskWoken);
 	}
 
-	// Handle full transfer complete
+	// Handle half transfer complete
 	if (__HAL_DMA_GET_FLAG(&dmaOutHandle, DMA_FLAG_HTIF1_5))
 	{
 		__HAL_DMA_CLEAR_FLAG(&dmaOutHandle, DMA_FLAG_HTIF1_5);
-		xSemaphoreGiveFromISR(audioOutSemiphore, &xHigherPriorityTaskWoken);
 	}
 
 	// Handle transfer error 

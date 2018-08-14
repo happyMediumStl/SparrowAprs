@@ -5,9 +5,6 @@
 
 static void* Stm32f4SectorToBaseAddr(const uint32_t sector);
 
-// Storage for the live configuration structure 
-
-
 typedef struct 
 {
 	uint8_t Sector;
@@ -39,6 +36,7 @@ typedef struct
 	uint32_t Crc;
 } FlashConfigStructureT;
 
+// Storage for the live configuration structure 
 static FlashConfigStructureT config;
 
 #define FLASH_CONFIG_MAGIC 0x51242757
@@ -48,15 +46,8 @@ void FlashConfigInit(void)
 	// If we can't load from flash, then just load defaults
 	if (!FlashConfigLoad())
 	{
-		FlashConfigLoadDefaults();
+		ConfigLoadDefaults();
 	}
-}
-
-// Clober structure in RAM with defaults
-void FlashConfigLoadDefaults(void)
-{
-	// Load from the defaults struct 
-	FlashConfigLoadFromMemory(&__ConfigDefaults);
 }
 
 uint8_t FlashConfigLoad(void)
@@ -75,7 +66,7 @@ uint8_t FlashConfigLoad(void)
 
 void FlashConfigLoadFromMemory(const ConfigT* configIn)
 {
-	memcpy(&config, configIn, sizeof(ConfigT));
+	memcpy(&config.Config, configIn, sizeof(ConfigT));
 }
 
 // Save config to flash
@@ -109,7 +100,6 @@ uint32_t GetLatestConfigStructure(void)
 {
 	return 0;
 }
-
 
 // Get the base address of a sector
 static void* Stm32f4SectorToBaseAddr(const uint32_t sector)

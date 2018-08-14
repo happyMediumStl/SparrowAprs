@@ -1,15 +1,22 @@
 #include <stm32f4xx_hal.h>
+#include "Bsp.h"
 
 // Peripheral handles
 static DMA_HandleTypeDef dmaHandle;
 static ADC_HandleTypeDef adcHandle;
 
 // DMA Sample buffer
-#define BSP_ADC_SAMPLE_BUFFER_SIZE		32
-static uint16_t bspAdcBuffer[BSP_ADC_SAMPLE_BUFFER_SIZE];
+#define ADC_SAMPLE_BUFFER_SIZE		32
+#define TEMP_COUNT					16
+#define VSENSE_COUNT				16
+static volatile uint16_t bspAdcBuffer[ADC_SAMPLE_BUFFER_SIZE];
 
 // Input voltage sense
-static uint32_t VSenseAccumulator = 0;
+static volatile uint32_t vSenseAccumulator = 0;
+static volatile uint32_t tSenseAccumulator = 0;
+
+// ADC calibration slope. Store it so we only calculate it once
+static float tSlope = 0;
 
 /*
 	Vin ticks to voltage
@@ -26,12 +33,25 @@ static uint32_t VSenseAccumulator = 0;
 */
 #define VIN_TICKS_TO_VOLTS		0.004545054945054945f
 
+// Ticks to volts
+#define TICKS_TO_VOLTS			0.000805860805860f
+
+// Temperature sensor trimming values
+// Defined DocID022152 Rev 8 page 138
+#define TS_CAL1_T		30.0f
+#define TS_CAL2_T		110.0f
+#define TS_CAL1			(uint16_t*)(0x1FFF7A2C)
+#define TS_CAL2			(uint16_t*)(0x1FFF7A2E)
+
 // Init BSP peripherals
 void BspInit(void)
 {
 	// Pa1 Vsense
 	GPIO_InitTypeDef GPIO_InitStruct;
 	ADC_ChannelConfTypeDef sConfig;
+
+	// Precalculate the temperature curve slope
+	tSlope = (TS_CAL2_T - TS_CAL1_T) / (*TS_CAL2 - *TS_CAL1);
 
 	// Enable Clocks
 	__GPIOA_CLK_ENABLE();
@@ -40,7 +60,7 @@ void BspInit(void)
 
 	// Configure ADC output pin
 	GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
-	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
 
 	// PA1 ADC1_IN1
 	GPIO_InitStruct.Pin = GPIO_PIN_1;
@@ -48,27 +68,33 @@ void BspInit(void)
 
 	// Configure ADC
 	adcHandle.Instance					 = ADC1;
-	adcHandle.Init.ClockPrescaler        = ADC_CLOCKPRESCALER_PCLK_DIV4;
+	adcHandle.Init.ClockPrescaler        = ADC_CLOCKPRESCALER_PCLK_DIV8;
 	adcHandle.Init.Resolution            = ADC_RESOLUTION_12B;
-	adcHandle.Init.ScanConvMode          = DISABLE;
+	adcHandle.Init.ScanConvMode          = ENABLE;
 	adcHandle.Init.ContinuousConvMode    = ENABLE;
 	adcHandle.Init.DiscontinuousConvMode = DISABLE;
 	adcHandle.Init.NbrOfDiscConversion   = 0;
 	adcHandle.Init.ExternalTrigConvEdge  = ADC_EXTERNALTRIG_EDGE_NONE;
-	adcHandle.Init.ExternalTrigConv      = ADC_EXTERNALTRIGCONV_T8_TRGO;
+	adcHandle.Init.ExternalTrigConv      = ADC_SOFTWARE_START;
 	adcHandle.Init.DataAlign             = ADC_DATAALIGN_RIGHT;
-	adcHandle.Init.NbrOfConversion       = 1;
-	adcHandle.Init.DMAContinuousRequests = ENABLE;
+	adcHandle.Init.NbrOfConversion       = 2;
+	adcHandle.Init.DMAContinuousRequests = DISABLE;
 	adcHandle.Init.EOCSelection          = DISABLE;
 	HAL_ADC_Init(&adcHandle);
 
-	// Configure in channel
-	sConfig.Rank         = 1;
-	sConfig.SamplingTime = ADC_SAMPLETIME_144CYCLES;
+	// Configure in channels
+	sConfig.SamplingTime = ADC_SAMPLETIME_480CYCLES;
 	sConfig.Offset       = 0;
 
 	// V+ VSense
 	sConfig.Channel      = ADC_CHANNEL_1;
+	sConfig.Rank         = 1;
+	HAL_ADC_ConfigChannel(&adcHandle, &sConfig);
+
+	// uC temperature sensor
+	// HAL automatically configures the temperature sensor
+	sConfig.Channel      = ADC_CHANNEL_16;
+	sConfig.Rank         = 2;
 	HAL_ADC_ConfigChannel(&adcHandle, &sConfig);
 
 	// Configure DMA
@@ -78,8 +104,8 @@ void BspInit(void)
 	dmaHandle.Init.Direction			= DMA_PERIPH_TO_MEMORY;
 	dmaHandle.Init.PeriphInc			= DMA_PINC_DISABLE;
 	dmaHandle.Init.MemInc				= DMA_MINC_ENABLE;
-	dmaHandle.Init.PeriphDataAlignment	= DMA_PDATAALIGN_BYTE;
-	dmaHandle.Init.MemDataAlignment		= DMA_MDATAALIGN_BYTE;
+	dmaHandle.Init.PeriphDataAlignment	= DMA_PDATAALIGN_HALFWORD;
+	dmaHandle.Init.MemDataAlignment		= DMA_MDATAALIGN_HALFWORD;
 	dmaHandle.Init.Mode					= DMA_NORMAL;
 	dmaHandle.Init.Priority				= DMA_PRIORITY_HIGH;
 	dmaHandle.Init.FIFOMode				= DMA_FIFOMODE_DISABLE;         
@@ -95,41 +121,54 @@ void BspInit(void)
 	HAL_NVIC_EnableIRQ(DMA2_Stream4_IRQn);
 
 	// Start measuring
-	HAL_ADC_Start_DMA(&adcHandle, (uint32_t*)bspAdcBuffer, BSP_ADC_SAMPLE_BUFFER_SIZE);
+	HAL_ADC_Start_DMA(&adcHandle, (uint32_t*)bspAdcBuffer, ADC_SAMPLE_BUFFER_SIZE);
 }
 
+// Process raw data from the ADC DMA buffer
 static void ConvertBspMeasurments(void)
 {
 	uint32_t tempAccumulator = 0;
 	uint32_t i = 0;
 
-	for (i = 0; i < BSP_ADC_SAMPLE_BUFFER_SIZE; i++)
+	// Extract VSense samples
+	for (i = 0; i < VSENSE_COUNT; i++)
 	{
-		tempAccumulator += bspAdcBuffer[i];
+		tempAccumulator += bspAdcBuffer[(i * 2) + 0];
 	}
 
-	VSenseAccumulator = tempAccumulator;
+	vSenseAccumulator = tempAccumulator;
+	tempAccumulator = 0;
+
+	// Extract onboard temperature sensor values
+	for (i = 0; i < TEMP_COUNT; i++)
+	{
+		tempAccumulator += bspAdcBuffer[(i * 2) + 1];
+	}
+
+	tSenseAccumulator = tempAccumulator;
+	tempAccumulator = 0;
 }
 
 // Handle Audio Out DMA
 void DMA2_Stream4_IRQHandler(void)
 {
-	// Handle half transfer
+	// Handle transfer complete
 	if(__HAL_DMA_GET_FLAG(&dmaHandle, DMA_FLAG_TCIF0_4))
 	{
 		__HAL_DMA_CLEAR_FLAG(&dmaHandle, DMA_FLAG_TCIF0_4);
-	}
-
-	// Handle full transfer complete
-	if(__HAL_DMA_GET_FLAG(&dmaHandle, DMA_FLAG_HTIF0_4))
-	{
-		__HAL_DMA_CLEAR_FLAG(&dmaHandle, DMA_FLAG_HTIF0_4);
 
 		// Transfer is complete, process the samples
 		ConvertBspMeasurments();
 
 		// Start the next round of conversions
-		HAL_ADC_Start_DMA(&adcHandle, (uint32_t*)bspAdcBuffer, BSP_ADC_SAMPLE_BUFFER_SIZE);
+		HAL_ADC_Stop_DMA(&adcHandle);
+		HAL_ADC_Start_DMA(&adcHandle, (uint32_t*)bspAdcBuffer, ADC_SAMPLE_BUFFER_SIZE);
+	}
+
+	// Handle half transfer complete
+	if(__HAL_DMA_GET_FLAG(&dmaHandle, DMA_FLAG_HTIF0_4))
+	{
+		__HAL_DMA_CLEAR_FLAG(&dmaHandle, DMA_FLAG_HTIF0_4);
 	}
 
 	// Handle transfer error 
@@ -148,5 +187,21 @@ void DMA2_Stream4_IRQHandler(void)
 // Get V in voltage in volts
 float BspGetVSense(void)
 {
-	return ((float)VSenseAccumulator / BSP_ADC_SAMPLE_BUFFER_SIZE) * VIN_TICKS_TO_VOLTS;
+	return ((float)vSenseAccumulator / VSENSE_COUNT) * VIN_TICKS_TO_VOLTS;
+}
+
+// Get the internal chip temperature in C
+float BspGetuCTemperature(void)
+{
+	/*
+		Ref:
+			* DocID022152 Rev 8, page 39, 138
+			* DocID022101 Rev 3
+
+		The temperature sensor in the STM32 is a low accuracy device,
+		though it can be calibrated using TS_CAL1 and TS_CAL2
+	*/
+
+	// Calculate temperature
+	return (tSlope * (((float)tSenseAccumulator / (float)TEMP_COUNT) - *TS_CAL1)) + TS_CAL1_T;
 }

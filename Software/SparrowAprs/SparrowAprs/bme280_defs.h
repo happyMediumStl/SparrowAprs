@@ -103,7 +103,7 @@
 /********************************************************/
 
 #ifndef BME280_FLOAT_ENABLE
-/* #define BME280_FLOAT_ENABLE */
+#define BME280_FLOAT_ENABLE
 #endif
 
 #ifndef BME280_FLOAT_ENABLE

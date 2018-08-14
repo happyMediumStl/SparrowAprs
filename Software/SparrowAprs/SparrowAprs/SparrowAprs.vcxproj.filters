@@ -346,6 +346,9 @@
     <ClCompile Include="$(BSP_ROOT)\FreeRTOS\Source\croutine.c">
       <Filter>FreeRTOS</Filter>
     </ClCompile>
+    <ClCompile Include="Bme280Shim.c">
+      <Filter>BME280</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(BSP_ROOT)\STM32F4xxxx\CMSIS_HAL\Include\arm_common_tables.h">

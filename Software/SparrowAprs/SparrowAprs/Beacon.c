@@ -28,11 +28,14 @@ static uint8_t aprsBuffer[PACKET_BUFFER_SIZE];
 void BeaconTask(void* pvParameters);
 static TaskHandle_t beaconTaskHandle = NULL;
 
-ConfigT* config;
+static ConfigT* config;
 
 struct
 {
 	NmeaPositionT Position;
+	float Altitude;
+	float Speed;
+	float Track;
 } beaconInfo;
 
 void BeaconInit(void)
@@ -62,6 +65,20 @@ void HandleNewGga(const NmeaGgaT* gga)
 	// Extract the location
 	beaconInfo.Position.Lat = gga->Position.Lat;
 	beaconInfo.Position.Lon = gga->Position.Lon;
+	beaconInfo.Altitude = gga->Altitude;
+}
+
+void HandleNewRmc(const NmeaRmcT* rmc)
+{
+	// Ignore if we have no fix
+	if (rmc->Fix != 'A')
+	{
+		return;
+	}
+
+	// Exact from the new GPS packet
+	beaconInfo.Speed = rmc->Speed;
+	beaconInfo.Track = rmc->Track;
 }
 
 void HandleNewZda(const NmeaZdaT* zda)
@@ -75,20 +92,20 @@ void HandleNewZda(const NmeaZdaT* zda)
 	{
 		return;
 	}
+
+	// Get the current time
+	currentTime = RtcGet();
 	
 	// Load the time structure with GPS fields
 	time.tm_hour = zda->Time.Hour;
-	time.tm_min = zda->Time.Minute;
-	time.tm_sec = zda->Time.Second;
+	time.tm_min  = zda->Time.Minute;
+	time.tm_sec  = zda->Time.Second;
 	time.tm_year = zda->Year;
 	time.tm_mon  = zda->Month;
 	time.tm_mday = zda->Day;
 
 	// Make timestamp from GPS time
 	gpsTimeStamp = mktime(&time);
-
-	// Get the current time
-	currentTime = RtcGet();
 
 	// If there is more than 5 second difference between our system time and GPS
 	// Because of uint32_t arithmatic, one of these comparsions will always be true if one value is larger than the other
@@ -99,7 +116,12 @@ void HandleNewZda(const NmeaZdaT* zda)
 		RtcSet(gpsTimeStamp);
 		printf("Time set!\r\n %lu", gpsTimeStamp);
 	}
-	
+}
+
+static float Meters2Feet(const float m)
+{
+	// 10000 ft = 3048 m
+	return m / 0.3048;
 }
 
 void BeaconTask(void* pvParameters)
@@ -112,8 +134,7 @@ void BeaconTask(void* pvParameters)
 	uint32_t aprsLength;
 	AprsPositionReportT aprsReport;
 	RadioPacketT beaconPacket;
-
-	printf("Beacon up!\r\n");
+	uint32_t beaconPeriod;
 
 	// Get the queues
 	nmeaQueue = Nmea0183GetQueue();
@@ -135,18 +156,17 @@ void BeaconTask(void* pvParameters)
 				switch (msg.MessageType)
 				{
 					// Handle GGA message
-					case NMEA_MESSAGE_TYPE_GGA :
-						printf("GGA");
+					case NMEA_MESSAGE_TYPE_GGA:
 						HandleNewGga(&msg.Gga);
 						break;
 
 					// Handle RMC message
 					case NMEA_MESSAGE_TYPE_RMC :
-						printf("RMC");
+						HandleNewRmc(&msg.Rmc);
 						break;
-
+					
+					// Handle ZDA message
 					case NMEA_MESSAGE_TYPE_ZDA:
-						printf("ZDT");
 						HandleNewZda(&msg.Zda);
 						break;
 
@@ -157,8 +177,19 @@ void BeaconTask(void* pvParameters)
 			}
 		}
 
+		// Compute smart beacon period
+		if (config->Aprs.UseSmartBeacon)
+		{
+			// TODO: Smart beacon
+			beaconPeriod = config->Aprs.BeaconPeriod;
+		}
+		else
+		{
+			beaconPeriod = config->Aprs.BeaconPeriod;
+		}
+
 		// If it's time to beacon, assemble the report and send it
-		if (xTaskGetTickCount() - lastBeaconTime > 45000)
+		if(xTaskGetTickCount() - lastBeaconTime > beaconPeriod)
 		{
 			lastBeaconTime = xTaskGetTickCount();
 			printf("Beaconing: %f, %f\r\n", beaconInfo.Position.Lat, beaconInfo.Position.Lon);
@@ -174,8 +205,6 @@ void BeaconTask(void* pvParameters)
 			beaconPacket.Frame.PostFlagCount = 10;
 
 			// Fill APRS report
-			aprsReport.Comment = (uint8_t*)"ChrisAprs";
-			aprsReport.CommentLength = 9;
 			aprsReport.Timestamp = RtcGet();
 			aprsReport.Position.Lat = beaconInfo.Position.Lat;
 			aprsReport.Position.Lon = beaconInfo.Position.Lon;
@@ -183,7 +212,12 @@ void BeaconTask(void* pvParameters)
 			aprsReport.Position.SymbolTable = config->Aprs.SymbolTable;
 
 			// Build APRS report
-			aprsLength = AprsMakePosition(aprsBuffer, &aprsReport);
+			aprsLength = 0;
+			aprsLength += AprsMakePosition(aprsBuffer, &aprsReport);
+			aprsLength += AprsMakeExtCourseSpeed(aprsBuffer + aprsLength, (uint8_t)beaconInfo.Track, (uint16_t)beaconInfo.Speed);
+
+			// Append comment for altitude
+			aprsLength += snprintf((char*)aprsBuffer + aprsLength, 8, "A=%06i", (int32_t)Meters2Feet(beaconInfo.Altitude));
 
 			// Add the APRS report to the packet
 			memcpy(beaconPacket.Payload, aprsBuffer, aprsLength);

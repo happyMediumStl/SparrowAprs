@@ -1,7 +1,5 @@
 #include <stm32f4xx_hal.h>
 #include <string.h>
-#include <stdarg.h>
-#include "Audio.h"
 #include "Queuex.h"
 #include "Helpers.h"
 #include "TokenIterate.h"
@@ -34,7 +32,7 @@ typedef struct
 {
 	char Header[5];
 	void(*Processor)(const uint32_t);
-} NmeaProcessor;
+} NmeaProcessorT;
 
 // Task
 static void Nmea0183Task(void * pvParameters);
@@ -42,12 +40,12 @@ static TaskHandle_t idleTaskHandle = NULL;
 
 // Serial DMA buffer
 #define DMA_BUFFER_SIZE			1000
-uint8_t dmaBuffer[DMA_BUFFER_SIZE];
+static uint8_t dmaBuffer[DMA_BUFFER_SIZE];
 static volatile uint32_t dmaHead = 0;
 
 // Nmea data queue
 #define NMEA_BUFFER_SIZE		1000
-uint8_t nmeaBuffer[NMEA_BUFFER_SIZE];
+static uint8_t nmeaBuffer[NMEA_BUFFER_SIZE];
 static struct QueueT nmeaQueue;
 
 // Message output queue
@@ -64,14 +62,14 @@ static uint32_t parserState = PARSE_STATE_HEADER;
 
 // NMEA processors
 #define NMEA_PROCESSOR_COUNT	4
-NmeaProcessor processors[NMEA_PROCESSOR_COUNT] = {
+static NmeaProcessorT processors[NMEA_PROCESSOR_COUNT] = {
 	{ "GPGSA", ParseGsa },
 	{ "GPGGA", ParseGga },
 	{ "GPRMC", ParseRmc },
 	{ "GPZDA", ParseZda }
 };
 
-// Peripherl handles
+// Peripheral handles
 static UART_HandleTypeDef UartHandle;
 static DMA_HandleTypeDef hdma_rx;
 
@@ -119,7 +117,7 @@ static void InitUart(void)
 	hdma_rx.Init.Priority            = DMA_PRIORITY_HIGH;
 	hdma_rx.Init.FIFOMode            = DMA_FIFOMODE_DISABLE;
 	hdma_rx.Init.FIFOThreshold       = DMA_FIFO_THRESHOLD_FULL;
-	hdma_rx.Init.MemBurst            = DMA_MBURST_SINGLE;   // DMA_MBURST_SINGLE DMA_MBURST_INC4
+	hdma_rx.Init.MemBurst            = DMA_MBURST_SINGLE;
 	hdma_rx.Init.PeriphBurst         = DMA_PBURST_SINGLE;
 
 	// Init DMA
@@ -328,70 +326,6 @@ static void ProcessSentence(const uint32_t length)
 	}
 }
 
-/*
-	Core token types
-		char		C
-		float		F
-		pos			P
-		time		T
-		date		D
-*/
-static void NmeaParseTokens(const uint8_t* buffer, const uint32_t length, const char* format, ...)
-{
-	uint32_t outPtr = 0;
-	char* formatPtr = (char*)format;
-	uint8_t* token;
-	uint32_t tokenLength;
-	va_list ap;
-
-	// Create the token iterator
-	TokenIterateT t;
-	TokenIteratorInit(&t, ',', buffer + 5, length);
-	
-	// Init var arg list
-	va_start(ap, format);
-
-	// For each format descriptor 
-	while (*format)
-	{
-		// Get the current token
-		TokenIteratorForward(&t, &token, &tokenLength);
-
-		switch (*format++)
-		{
-			// Char
-			case 'C' :
-				ExtractChar(&t, va_arg(ap, uint8_t*));
-				break;
-
-			// Float
-			case 'F' :
-				ExtractFloat(&t, va_arg(ap, float*));
-				break;
-
-			// Position
-			case 'P' :
-				ExtractPosition(&t, va_arg(ap, NmeaPositionT*));
-				break;
-
-			// Time
-			case 'T':
-				ExtractTime(&t, va_arg(ap, NmeaTimeT*));
-				break;
-
-			// Date
-			case 'D':
-				ExtractDate(&t, va_arg(ap, NmeaDateT*));
-				break;
-		}
-
-		// Advance the descriptor ptr
-		formatPtr++;
-	}
-
-	va_end(ap);
-}
-
 // Extract time
 static uint8_t ExtractTime(TokenIterateT* t, NmeaTimeT* time)
 {
@@ -419,7 +353,7 @@ static uint8_t ExtractTime(TokenIterateT* t, NmeaTimeT* time)
 	return 1;
 }
 
-// Extract time
+// Extract date
 static uint8_t ExtractDate(TokenIterateT* t, NmeaDateT* date)
 {
 	uint8_t* token;
@@ -446,7 +380,7 @@ static uint8_t ExtractDate(TokenIterateT* t, NmeaDateT* date)
 	return 1;
 }
 
-// Extract time
+// Extract position
 static uint8_t ExtractPosition(TokenIterateT* t, NmeaPositionT* pos)
 {
 	uint8_t* token;
@@ -505,6 +439,8 @@ static uint8_t ExtractPosition(TokenIterateT* t, NmeaPositionT* pos)
 	return 1;
 }
 
+
+// Extract char
 static uint8_t ExtractChar(TokenIterateT* t, uint8_t* c)
 {
 	uint8_t* token;
@@ -524,6 +460,7 @@ static uint8_t ExtractChar(TokenIterateT* t, uint8_t* c)
 	return 1;
 }
 
+// Extract float
 static uint8_t ExtractFloat(TokenIterateT* t, float* x)
 {
 	uint8_t* token;
@@ -543,6 +480,8 @@ static uint8_t ExtractFloat(TokenIterateT* t, float* x)
 	return 1;
 }
 
+
+// Extract int
 static uint8_t ExtractInt(TokenIterateT* t, int32_t* x)
 {
 	uint8_t* token;
@@ -562,6 +501,7 @@ static uint8_t ExtractInt(TokenIterateT* t, int32_t* x)
 	return 1;
 }
 
+// Extract byte int
 static uint8_t ExtractByteInt(TokenIterateT* t, int8_t* x)
 {
 	uint8_t* token;
@@ -581,7 +521,7 @@ static uint8_t ExtractByteInt(TokenIterateT* t, int8_t* x)
 	return 1;
 }
 
-//// Setence Parsers ////
+//// Sentence Parsers ////
 
 static void ParseGsa(const uint32_t length)
 {

@@ -57,6 +57,7 @@
   <ItemGroup>
     <ClCompile Include="Afsk.c" />
     <ClCompile Include="Aprs.c" />
+    <ClCompile Include="Bme280Shim.c" />
     <ClCompile Include="Main.c" />
     <ClCompile Include="Audio.c" />
     <ClCompile Include="Ax25.c" />

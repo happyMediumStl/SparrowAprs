@@ -1,7 +1,8 @@
 #include "Config.h"
+#include "FlashConfig.h"
 
 // Config defaults
-const ConfigT __ConfigDefaults = 
+const static ConfigT __ConfigDefaults = 
 {
 	// System settings
 	{
@@ -16,6 +17,13 @@ const ConfigT __ConfigDefaults =
 		"WIDE2 1",
 		11,
 		'/',
-		'O'
+		'O',
+		45000,
+		0
 	}
 };
+
+void ConfigLoadDefaults(void)
+{
+	FlashConfigLoadFromMemory(&__ConfigDefaults);
+}

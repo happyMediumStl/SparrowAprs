@@ -1,8 +1,6 @@
 #include <stm32f4xx_hal.h>
 #include "FreeRTOS.h"
 #include "task.h"
-#include "Retarget.h"
-#include <math.h>
 #include <stdint.h>
 #include <string.h>
 #include "Ax25.h"
@@ -29,6 +27,9 @@ static TaskHandle_t radioTaskHandle = NULL;
 #define AUDIO_BUFFER_SIZE		18000
 static uint8_t audioOut[AUDIO_BUFFER_SIZE];
 static uint8_t audioIn[AUDIO_BUFFER_SIZE];
+
+#define AX25_BUFFER_SIZE	500
+static uint8_t ax25Buffer[AX25_BUFFER_SIZE];
 
 void RadioInit(void)
 {
@@ -71,8 +72,6 @@ void RadioTaskStart(void)
 		&radioTaskHandle);
 }
 
-uint8_t ax25Buffer[200];
-
 // Radio manager task
 void RadioTask(void* pvParameters)
 {
@@ -80,8 +79,6 @@ void RadioTask(void* pvParameters)
 	uint32_t ax25Len;
 	TickType_t lastTaskTime = 0;
 	RadioPacketT packetOut;
-	
-	printf("Radio up!\r\n");
 
 	// Airtime / radio management loop
 	while (1)

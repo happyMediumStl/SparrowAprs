@@ -53,6 +53,8 @@ int main(void)
 	// Init config
 	FlashConfigInit();
 
+	printf("%lu\r\n", FlashConfigGetPtr()->Aprs.BeaconPeriod);
+
 	// BSP init
 	BspInit();
 
@@ -65,6 +67,9 @@ int main(void)
 	// Init DRA818
 	Dra818Init();
 	Dra818IoInit();
+
+	// Init beacon
+	BeaconInit();
 
 	// Init Audio Out
 	AudioInit();
