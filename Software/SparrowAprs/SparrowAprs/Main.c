@@ -29,6 +29,8 @@
 #include "Nmea0183.h"
 #include "Rtc.h"
 #include "Radio.h"
+#include "Bsp.h"
+#include "FlashConfig.h"
 
 static void SystemClock_Config(void);
 void SystemIdle(void * pvParameters);
@@ -47,6 +49,12 @@ int main(void)
 	// Init retarget
 	RetargetInit();
 	printf("%cBoard up!\r\n", 12);
+
+	// Init config
+	FlashConfigInit();
+
+	// BSP init
+	BspInit();
 
 	// LED init
 	LedInit();
@@ -101,6 +109,8 @@ void SystemIdle(void * pvParameters)
 
 		// Blink LED
 		LedToggle(LED_1);
+
+		// TODO: Do system health check
 
 		// Wait
 		vTaskDelay(SYSTEM_IDLE_DELAY / portTICK_PERIOD_MS);

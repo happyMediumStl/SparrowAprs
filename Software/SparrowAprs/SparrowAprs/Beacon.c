@@ -17,6 +17,8 @@
 #include "Rtc.h"
 #include "time.h"
 #include "Radio.h"
+#include "Config.h"
+#include "FlashConfig.h"
 
 #define MAX_TIME_DELTA	5
 
@@ -26,6 +28,8 @@ static uint8_t aprsBuffer[PACKET_BUFFER_SIZE];
 void BeaconTask(void* pvParameters);
 static TaskHandle_t beaconTaskHandle = NULL;
 
+ConfigT* config;
+
 struct
 {
 	NmeaPositionT Position;
@@ -33,18 +37,7 @@ struct
 
 void BeaconInit(void)
 {
-}
-
-// Configure AX25 frame
-static void ConfigureAx25Frame(void)
-{
-
-}
-
-// Send a position report
-static void SendReport(void)
-{
-
+	config = FlashConfigGetPtr(); 
 }
 
 void BeaconStartTask(void)
@@ -71,36 +64,42 @@ void HandleNewGga(const NmeaGgaT* gga)
 	beaconInfo.Position.Lon = gga->Position.Lon;
 }
 
-void HandleNewRmc(const NmeaRmcT* rmc)
+void HandleNewZda(const NmeaZdaT* zda)
 {
 	struct tm time;
 	time_t gpsTimeStamp;
+	uint32_t currentTime;
 
-	// If there is no fix, ignore it
-	if (rmc->Fix != 'A')
+	// Only act if the packet is valid
+	if (!zda->Valid)
 	{
 		return;
 	}
-
-	// Create a timestamp from the GPS timedate
-	time.tm_hour = rmc->Time.Hour;
-	time.tm_min  = rmc->Time.Minute;
-	time.tm_sec  = rmc->Time.Second;
-	time.tm_year = rmc->Date.Year - 1900;
-	time.tm_mon  = rmc->Date.Month - 1;
-	time.tm_mday = rmc->Date.Day;
+	
+	// Load the time structure with GPS fields
+	time.tm_hour = zda->Time.Hour;
+	time.tm_min = zda->Time.Minute;
+	time.tm_sec = zda->Time.Second;
+	time.tm_year = zda->Year;
+	time.tm_mon  = zda->Month;
+	time.tm_mday = zda->Day;
 
 	// Make timestamp from GPS time
 	gpsTimeStamp = mktime(&time);
 
+	// Get the current time
+	currentTime = RtcGet();
+
 	// If there is more than 5 second difference between our system time and GPS
-	if(RtcGet() - gpsTimeStamp > MAX_TIME_DELTA)
+	// Because of uint32_t arithmatic, one of these comparsions will always be true if one value is larger than the other
+	// If both are true, it means one value is larger than the other, and that difference is more than MAX_TIME_DELTA
+	if (currentTime - gpsTimeStamp > MAX_TIME_DELTA && gpsTimeStamp - currentTime > MAX_TIME_DELTA)
 	{
 		// Set the new system time
 		RtcSet(gpsTimeStamp);
-
 		printf("Time set!\r\n %lu", gpsTimeStamp);
 	}
+	
 }
 
 void BeaconTask(void* pvParameters)
@@ -144,11 +143,11 @@ void BeaconTask(void* pvParameters)
 					// Handle RMC message
 					case NMEA_MESSAGE_TYPE_RMC :
 						printf("RMC");
-						HandleNewRmc(&msg.Rmc);
 						break;
 
 					case NMEA_MESSAGE_TYPE_ZDA:
 						printf("ZDT");
+						HandleNewZda(&msg.Zda);
 						break;
 
 					default:
@@ -165,11 +164,11 @@ void BeaconTask(void* pvParameters)
 			printf("Beaconing: %f, %f\r\n", beaconInfo.Position.Lat, beaconInfo.Position.Lon);
 	
 			// Configure Ax25 frame
-			memcpy(beaconPacket.Frame.Source, "KD0POQ", 6);
-			beaconPacket.Frame.SourceSsid = 11;
+			memcpy(beaconPacket.Frame.Source, config->Aprs.Callsign, 6);
+			beaconPacket.Frame.SourceSsid = config->Aprs.Ssid;
 			memcpy(beaconPacket.Frame.Destination, "APRS  ", 6);
 			beaconPacket.Frame.DestinationSsid = 0;
-			memcpy(beaconPacket.Path, (uint8_t*)"WIDE2 1", 7);
+			memcpy(beaconPacket.Path, config->Aprs.Path, 7);
 			beaconPacket.Frame.PathLen = 7;
 			beaconPacket.Frame.PreFlagCount = 10;
 			beaconPacket.Frame.PostFlagCount = 10;
@@ -180,8 +179,8 @@ void BeaconTask(void* pvParameters)
 			aprsReport.Timestamp = RtcGet();
 			aprsReport.Position.Lat = beaconInfo.Position.Lat;
 			aprsReport.Position.Lon = beaconInfo.Position.Lon;
-			aprsReport.Position.Symbol = 'O';
-			aprsReport.Position.SymbolTable = '/';
+			aprsReport.Position.Symbol = config->Aprs.Symbol;
+			aprsReport.Position.SymbolTable = config->Aprs.SymbolTable;
 
 			// Build APRS report
 			aprsLength = AprsMakePosition(aprsBuffer, &aprsReport);

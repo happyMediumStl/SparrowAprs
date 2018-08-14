@@ -4,17 +4,11 @@
 #include <stdint.h>
 #include "Config.h"
 
-
-
-#define CONFIG_STRUCT	Config;
-
-typedef struct
-{
-	uint32_t FlashMagic;
-
-
-} FlashStructure;
-
-
+void FlashConfigInit(void);
+void FlashConfigLoadDefaults(void);
+void FlashConfigLoadFromMemory(const ConfigT* configIn);
+uint8_t FlashConfigLoad(void);
+uint8_t FlashConfigSave(void);
+ConfigT* FlashConfigGetPtr(void);
 
 #endif // !FLASHCONFIG_H

@@ -715,17 +715,31 @@ static void ParseZda(const uint32_t length)
 	TokenIterateT t;
 	TokenIteratorInit(&t, ',', packetBuffer + 6, length - 6);
 
+	msg.Zda.Valid = 1;
+
 	// Time
-	ExtractTime(&t, &msg.Zda.Time);
+	if (!ExtractTime(&t, &msg.Zda.Time))
+	{
+		msg.Zda.Valid = 0;
+	}
 
 	// Day
-	ExtractByteInt(&t, (int8_t*)&msg.Zda.Day);
+	if (!ExtractByteInt(&t, (int8_t*)&msg.Zda.Day))
+	{
+		msg.Zda.Valid = 0;
+	}
 
 	// Month
-	ExtractByteInt(&t, (int8_t*)&msg.Zda.Month);
+	if (!ExtractByteInt(&t, (int8_t*)&msg.Zda.Month))
+	{
+		msg.Zda.Valid = 0;
+	}
 
 	// Year
-	ExtractByteInt(&t, (int8_t*)&msg.Zda.Year);
+	if (!ExtractByteInt(&t, (int8_t*)&msg.Zda.Year))
+	{
+		msg.Zda.Valid = 0;
+	}
 
 	// Try to queue it
 	xQueueSendToBack(NmeaMessageQueue, &msg, 0);
