@@ -98,6 +98,16 @@ uint32_t GetLatestFreeConfigAddress(void)
 // Get the latest flash config structure
 uint32_t GetLatestConfigStructure(void)
 {
+	uint32_t* addrPtr = Stm32f4SectorToBaseAddr(FLASH_CONFIG_SECTOR);
+	uint8_t doneFinding = 1;
+
+	while (!doneFinding)
+	{
+		// Conjure the address as a 
+
+	}
+
+
 	return 0;
 }
 

@@ -334,9 +334,6 @@
     <ClCompile Include="Aprs.c">
       <Filter>Project</Filter>
     </ClCompile>
-    <ClCompile Include="Afsk.c">
-      <Filter>Project</Filter>
-    </ClCompile>
     <ClCompile Include="system_stm32f4xx.c">
       <Filter>System</Filter>
     </ClCompile>
@@ -348,6 +345,21 @@
     </ClCompile>
     <ClCompile Include="Bme280Shim.c">
       <Filter>BME280</Filter>
+    </ClCompile>
+    <ClCompile Include="CrcCcitt.c">
+      <Filter>Project</Filter>
+    </ClCompile>
+    <ClCompile Include="AfskDecode.c">
+      <Filter>Project</Filter>
+    </ClCompile>
+    <ClCompile Include="AfskEncode.c">
+      <Filter>Project</Filter>
+    </ClCompile>
+    <ClCompile Include="Watchdog.c">
+      <Filter>Project</Filter>
+    </ClCompile>
+    <ClCompile Include="UbloxNeo.c">
+      <Filter>Project</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -800,6 +812,18 @@
     </ClInclude>
     <ClInclude Include="$(BSP_ROOT)\FreeRTOS\Source\include\croutine.h">
       <Filter>FreeRTOS</Filter>
+    </ClInclude>
+    <ClInclude Include="AfskDefs.h">
+      <Filter>Project</Filter>
+    </ClInclude>
+    <ClInclude Include="Bme280Shim.h">
+      <Filter>BME280</Filter>
+    </ClInclude>
+    <ClInclude Include="Watchdog.h">
+      <Filter>Project</Filter>
+    </ClInclude>
+    <ClInclude Include="CrcCcitt.h">
+      <Filter>Project</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

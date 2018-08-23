@@ -15,8 +15,8 @@ void Dra818IoInit(void)
 	GPIO_InitStructure.Pull = GPIO_PULLDOWN;
 	
 	// PTT PA5
-	GPIO_InitStructure.Pin = GPIO_PIN_12;
-	HAL_GPIO_Init(GPIOC, &GPIO_InitStructure);
+	GPIO_InitStructure.Pin = GPIO_PIN_5;
+	HAL_GPIO_Init(GPIOA, &GPIO_InitStructure);
 
 	// PD :: Powerdown
 	GPIO_InitStructure.Pin = GPIO_PIN_6;
@@ -39,13 +39,13 @@ void Dra818IoInit(void)
 // Start TX
 void Dra818IoPttOn(void)
 {
-	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_SET);
 }
 
 // Stop TX
 void Dra818IoPttOff(void)
 {
-	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_5, GPIO_PIN_RESET);
 }
 
 // Powerdown

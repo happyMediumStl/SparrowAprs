@@ -63,10 +63,10 @@ static uint32_t parserState = PARSE_STATE_HEADER;
 // NMEA processors
 #define NMEA_PROCESSOR_COUNT	4
 static NmeaProcessorT processors[NMEA_PROCESSOR_COUNT] = {
-	{ "GPGSA", ParseGsa },
-	{ "GPGGA", ParseGga },
-	{ "GPRMC", ParseRmc },
-	{ "GPZDA", ParseZda }
+	{ "GNGSA", ParseGsa },
+	{ "GNGGA", ParseGga },
+	{ "GNRMC", ParseRmc },
+	{ "GNZDA", ParseZda }
 };
 
 // Peripheral handles
@@ -79,7 +79,7 @@ static void InitUart(void)
 	GPIO_InitTypeDef GPIO_InitStruct;
 
 	// Enable clocks
-	__GPIOC_CLK_ENABLE();
+	__GPIOB_CLK_ENABLE();
 	__USART3_CLK_ENABLE();
 	__DMA1_CLK_ENABLE();
 	
@@ -89,11 +89,11 @@ static void InitUart(void)
 	GPIO_InitStruct.Speed     = GPIO_SPEED_FREQ_HIGH;
 	GPIO_InitStruct.Pin       = GPIO_PIN_10 | GPIO_PIN_11;
 	GPIO_InitStruct.Alternate = GPIO_AF7_USART3;
-	HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+	HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 	
 	// Configure the USART peripheral
 	UartHandle.Instance          = USART3;
-	UartHandle.Init.BaudRate     = 115200;
+	UartHandle.Init.BaudRate     = 9600;
 	UartHandle.Init.WordLength   = UART_WORDLENGTH_8B;
 	UartHandle.Init.StopBits     = UART_STOPBITS_1;
 	UartHandle.Init.Parity       = UART_PARITY_NONE;
@@ -128,6 +128,11 @@ static void InitUart(void)
 
 	// Start DMA
 	HAL_UART_Receive_DMA(&UartHandle, (uint8_t*)&dmaBuffer, DMA_BUFFER_SIZE);
+}
+
+UART_HandleTypeDef* GetUartHandle(void)
+{
+	return &UartHandle;
 }
 
 uint8_t Nmea0183Init(void)

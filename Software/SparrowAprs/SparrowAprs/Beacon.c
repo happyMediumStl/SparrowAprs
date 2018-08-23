@@ -19,6 +19,8 @@
 #include "Radio.h"
 #include "Config.h"
 #include "FlashConfig.h"
+#include "Bme280Shim.h"
+#include "Bsp.h"
 
 #define MAX_TIME_DELTA	5
 
@@ -27,8 +29,6 @@ static uint8_t aprsBuffer[PACKET_BUFFER_SIZE];
 
 void BeaconTask(void* pvParameters);
 static TaskHandle_t beaconTaskHandle = NULL;
-
-static ConfigT* config;
 
 struct
 {
@@ -40,7 +40,6 @@ struct
 
 void BeaconInit(void)
 {
-	config = FlashConfigGetPtr(); 
 }
 
 void BeaconStartTask(void)
@@ -56,7 +55,7 @@ void BeaconStartTask(void)
 
 void HandleNewGga(const NmeaGgaT* gga)
 {
-	// If there is no fix, ignore it
+	// Ignore if we have no fix
 	if (gga->Fix == '0')
 	{
 		return;
@@ -87,7 +86,7 @@ void HandleNewZda(const NmeaZdaT* zda)
 	time_t gpsTimeStamp;
 	uint32_t currentTime;
 
-	// Only act if the packet is valid
+	// Ignore if we have no fix
 	if (!zda->Valid)
 	{
 		return;
@@ -135,6 +134,12 @@ void BeaconTask(void* pvParameters)
 	AprsPositionReportT aprsReport;
 	RadioPacketT beaconPacket;
 	uint32_t beaconPeriod;
+	float temperature;
+	float pressure;
+	float humidity;
+
+	// Get config
+	ConfigT* config = FlashConfigGetPtr(); 
 
 	// Get the queues
 	nmeaQueue = Nmea0183GetQueue();
@@ -156,7 +161,7 @@ void BeaconTask(void* pvParameters)
 				switch (msg.MessageType)
 				{
 					// Handle GGA message
-					case NMEA_MESSAGE_TYPE_GGA:
+					case NMEA_MESSAGE_TYPE_GGA :
 						HandleNewGga(&msg.Gga);
 						break;
 
@@ -201,7 +206,7 @@ void BeaconTask(void* pvParameters)
 			beaconPacket.Frame.DestinationSsid = 0;
 			memcpy(beaconPacket.Path, config->Aprs.Path, 7);
 			beaconPacket.Frame.PathLen = 7;
-			beaconPacket.Frame.PreFlagCount = 10;
+			beaconPacket.Frame.PreFlagCount = 80;
 			beaconPacket.Frame.PostFlagCount = 10;
 
 			// Fill APRS report
@@ -216,8 +221,14 @@ void BeaconTask(void* pvParameters)
 			aprsLength += AprsMakePosition(aprsBuffer, &aprsReport);
 			aprsLength += AprsMakeExtCourseSpeed(aprsBuffer + aprsLength, (uint8_t)beaconInfo.Track, (uint16_t)beaconInfo.Speed);
 
-			// Append comment for altitude
-			aprsLength += snprintf((char*)aprsBuffer + aprsLength, 8, "A=%06i", (int32_t)Meters2Feet(beaconInfo.Altitude));
+			// Append comment for GPS altitude
+			aprsLength += sprintf((char*)aprsBuffer + aprsLength, "A=%06i", (int32_t)Meters2Feet(beaconInfo.Altitude)) - 1;
+
+			// Get the current environmental data
+			Bme280ShimGetTph(&temperature, &pressure, &humidity);
+
+			// Add telemetry comment
+			aprsLength += sprintf((char*)aprsBuffer + aprsLength, "/Pa=%06i/Rh=%02.02f/Ti=%02.02f/V=%02.02f", (int)pressure, humidity, temperature, BspGetVSense()) - 1;
 
 			// Add the APRS report to the packet
 			memcpy(beaconPacket.Payload, aprsBuffer, aprsLength);

@@ -11,7 +11,7 @@ const static ConfigT __ConfigDefaults =
 		144.390f
 	},
 
-		// APRS settings
+	// APRS settings
 	{
 		"KD0POQ",
 		"WIDE2 1",

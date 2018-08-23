@@ -55,9 +55,11 @@
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
   <ItemGroup>
-    <ClCompile Include="Afsk.c" />
+    <ClCompile Include="AfskDecode.c" />
+    <ClCompile Include="AfskEncode.c" />
     <ClCompile Include="Aprs.c" />
     <ClCompile Include="Bme280Shim.c" />
+    <ClCompile Include="CrcCcitt.c" />
     <ClCompile Include="Main.c" />
     <ClCompile Include="Audio.c" />
     <ClCompile Include="Ax25.c" />
@@ -77,14 +79,20 @@
     <ClCompile Include="system_stm32f4xx.c" />
     <ClCompile Include="TokenIterate.c" />
     <ClCompile Include="Radio.c" />
+    <ClCompile Include="UbloxNeo.c" />
+    <ClCompile Include="Watchdog.c" />
+    <ClInclude Include="AfskDefs.h" />
     <ClInclude Include="bme280.h" />
+    <ClInclude Include="Bme280Shim.h" />
     <ClInclude Include="bme280_defs.h" />
     <ClInclude Include="Bsp.h" />
+    <ClInclude Include="CrcCcitt.h" />
     <ClInclude Include="Dra818.h" />
     <ClInclude Include="FlashConfig.h" />
     <ClInclude Include="Rtc.h" />
     <ClInclude Include="TokenIterate.h" />
     <ClInclude Include="Radio.h" />
+    <ClInclude Include="Watchdog.h" />
     <None Include="stm32.props" />
     <None Include="$(BSP_ROOT)\FreeRTOS\License\license.txt" />
     <ClCompile Include="$(BSP_ROOT)\FreeRTOS\Source\croutine.c" />

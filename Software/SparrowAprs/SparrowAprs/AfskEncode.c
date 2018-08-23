@@ -1,29 +1,8 @@
 #include <math.h>
 #include <stdint.h>
+#include "AfskDefs.h"
 
-// AFSK settings
-#define BITRATE			1200.0
-#define MARK_TONE		1200.0
-#define SPACE_TONE		2200.0
-#define SAMPLE_FREQ		12000.0			// 7000
-//#define SAMPLE_FREQ		42000.0
-//#define SAMPLE_FREQ		33600.0
-//#define SAMPLE_FREQ		24000.0
-//#define SAMPLE_FREQ		19200.0
-//#define SAMPLE_FREQ		16800.0
-//#define SAMPLE_FREQ		9600.0
-//#define SAMPLE_FREQ		8400.0
-//#define SAMPLE_FREQ		6000.0
-//#define SAMPLE_FREQ		4800.0
-
-#define STUFFING_LENGTH		5
-
-#define PI_2						6.2831853071
-const float PHASE_DELTA_MARK		= PI_2 * (MARK_TONE / SAMPLE_FREQ);
-const float PHASE_DELTA_SPACE		= PI_2 * (SPACE_TONE / SAMPLE_FREQ);
-const float TONE_SAMPLE_DURATION	= SAMPLE_FREQ / BITRATE;
-
-void AfskInit()
+void AfskInit(void)
 {
 }
 

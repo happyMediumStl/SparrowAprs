@@ -99,6 +99,6 @@ const uint32_t AprsMakePosition(uint8_t* buffer, const AprsPositionReportT* repo
 
 const uint32_t AprsMakeExtCourseSpeed(uint8_t* buffer, const uint8_t course, const uint16_t speed)
 {
-	sprintf((char*)buffer, "%03d/%03d", course, speed);
-	return 7;
+	sprintf((char*)buffer, "%03d/%03d/", course, speed);
+	return 8;
 }

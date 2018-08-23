@@ -116,6 +116,7 @@ void RadioTask(void* pvParameters)
 			{
 				encodedAudioLength = AUDIO_BUFFER_SIZE;
 			}
+			printf("start\r\n");
 
 			// Start xmit
 			Dra818IoPttOn();
@@ -136,6 +137,8 @@ void RadioTask(void* pvParameters)
 			// Stop Xmit
 			Dra818IoPttOff();
 			LedOff(LED_2);
+
+			printf("done\r\n");
 		}
 	}
 }

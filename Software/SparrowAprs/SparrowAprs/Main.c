@@ -31,6 +31,8 @@
 #include "Radio.h"
 #include "Bsp.h"
 #include "FlashConfig.h"
+#include "Watchdog.h"
+#include "Bme280Shim.h"
 
 static void SystemClock_Config(void);
 void SystemIdle(void * pvParameters);
@@ -42,31 +44,48 @@ int main(void)
 {
 	// Init HAL
 	HAL_Init();
+	
+	// LED init
+	LedInit();
 
 	// Configure clock
 	SystemClock_Config();
 
+	LedOn(LED_1);
+
+	// Init watchdog
+	WatchdogInit();
+	WatchdogFeed();
+	
 	// Init retarget
 	RetargetInit();
 	printf("%cBoard up!\r\n", 12);
 
+	// Verify clocks
+	if (HAL_RCC_GetHCLKFreq() != 168000000)
+	{
+		printf("Warning: sysClock freq does not match\r\n");
+	}
+
 	// Init config
 	FlashConfigInit();
-
-	printf("%lu\r\n", FlashConfigGetPtr()->Aprs.BeaconPeriod);
+	WatchdogFeed();
 
 	// BSP init
 	BspInit();
 
-	// LED init
-	LedInit();
-
 	// RTC
 	RtcInit();
+	WatchdogFeed();
+
+	// Init BME280
+	Bme280ShimInit();
+	//while (1) ;
 
 	// Init DRA818
 	Dra818Init();
 	Dra818IoInit();
+	WatchdogFeed();
 
 	// Init beacon
 	BeaconInit();
@@ -76,6 +95,7 @@ int main(void)
 	
 	// Init NMEA
 	Nmea0183Init();
+	WatchdogFeed();
 
 	// Init radio
 	RadioInit();
@@ -90,6 +110,7 @@ int main(void)
 
 	// Start nmea parser
 	Nmea0183StartParser();
+	WatchdogFeed();
 
 	// Start radio task
 	RadioTaskStart();
@@ -109,8 +130,8 @@ void SystemIdle(void * pvParameters)
 {
 	while (1)
 	{
-		//printf("Alive\r\n");
 		// Feed watchdog
+		WatchdogFeed();
 
 		// Blink LED
 		LedToggle(LED_1);
@@ -149,10 +170,10 @@ static void SystemClock_Config(void)
   
 	// HSE feeds PLL
 	RCC_OscInitStruct.OscillatorType		= RCC_OSCILLATORTYPE_HSE;
-	RCC_OscInitStruct.HSEState				= RCC_HSE_BYPASS;
+	RCC_OscInitStruct.HSEState				= RCC_HSE_ON;
 	RCC_OscInitStruct.PLL.PLLState			= RCC_PLL_ON;
 	RCC_OscInitStruct.PLL.PLLSource			= RCC_PLLSOURCE_HSE;
-	RCC_OscInitStruct.PLL.PLLM				= 50;
+	RCC_OscInitStruct.PLL.PLLM				= 25;
 	RCC_OscInitStruct.PLL.PLLN				= 336;
 	RCC_OscInitStruct.PLL.PLLP				= RCC_PLLP_DIV2;
 	RCC_OscInitStruct.PLL.PLLQ				= 7;
