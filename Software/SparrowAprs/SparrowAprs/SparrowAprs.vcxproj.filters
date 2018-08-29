@@ -361,6 +361,45 @@
     <ClCompile Include="UbloxNeo.c">
       <Filter>Project</Filter>
     </ClCompile>
+    <None Include="$(BSP_ROOT)\FreeRTOS\Source\readme.txt">
+      <Filter>Device-specific files\FreeRTOS</Filter>
+    </None>
+    <None Include="$(BSP_ROOT)\FreeRTOS\Source\st_readme.txt">
+      <Filter>Device-specific files\FreeRTOS</Filter>
+    </None>
+    <ClCompile Include="$(BSP_ROOT)\FreeRTOS\Source\CMSIS_RTOS\cmsis_os.c">
+      <Filter>Device-specific files\FreeRTOS</Filter>
+    </ClCompile>
+    <ClInclude Include="$(BSP_ROOT)\FreeRTOS\Source\CMSIS_RTOS\cmsis_os.h">
+      <Filter>Device-specific files\FreeRTOS</Filter>
+    </ClInclude>
+    <ClInclude Include="$(BSP_ROOT)\FreeRTOS\Source\CMSIS_RTOS\cmsis_os.h">
+      <Filter>Device-specific files\FreeRTOS</Filter>
+    </ClInclude>
+    <ClCompile Include="Usb.c">
+      <Filter>Usb</Filter>
+    </ClCompile>
+    <ClCompile Include="Usb\usbd_cdc.c">
+      <Filter>Usb</Filter>
+    </ClCompile>
+    <ClCompile Include="Usb\usbd_cdc_if.c">
+      <Filter>Usb</Filter>
+    </ClCompile>
+    <ClCompile Include="Usb\usbd_conf.c">
+      <Filter>Usb</Filter>
+    </ClCompile>
+    <ClCompile Include="Usb\usbd_core.c">
+      <Filter>Usb</Filter>
+    </ClCompile>
+    <ClCompile Include="Usb\usbd_ctlreq.c">
+      <Filter>Usb</Filter>
+    </ClCompile>
+    <ClCompile Include="Usb\usbd_ioreq.c">
+      <Filter>Usb</Filter>
+    </ClCompile>
+    <ClCompile Include="Usb\usbd_desc.c">
+      <Filter>Usb</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="$(BSP_ROOT)\STM32F4xxxx\CMSIS_HAL\Include\arm_common_tables.h">
@@ -825,6 +864,36 @@
     <ClInclude Include="CrcCcitt.h">
       <Filter>Project</Filter>
     </ClInclude>
+    <ClInclude Include="UbloxNeo.h">
+      <Filter>Project</Filter>
+    </ClInclude>
+    <ClInclude Include="Usb\usbd_cdc.h">
+      <Filter>Usb</Filter>
+    </ClInclude>
+    <ClInclude Include="Usb\usbd_cdc_if.h">
+      <Filter>Usb</Filter>
+    </ClInclude>
+    <ClInclude Include="Usb\usbd_conf.h">
+      <Filter>Usb</Filter>
+    </ClInclude>
+    <ClInclude Include="Usb\usbd_core.h">
+      <Filter>Usb</Filter>
+    </ClInclude>
+    <ClInclude Include="Usb\usbd_ctlreq.h">
+      <Filter>Usb</Filter>
+    </ClInclude>
+    <ClInclude Include="Usb\usbd_def.h">
+      <Filter>Usb</Filter>
+    </ClInclude>
+    <ClInclude Include="Usb\usbd_ioreq.h">
+      <Filter>Usb</Filter>
+    </ClInclude>
+    <ClInclude Include="Usb\usbd_desc.h">
+      <Filter>Usb</Filter>
+    </ClInclude>
+    <ClInclude Include="Usb.h">
+      <Filter>Usb</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="$(BSP_ROOT)\FreeRTOS\License\license.txt">
@@ -864,6 +933,21 @@
     </Filter>
     <Filter Include="VisualGDB">
       <UniqueIdentifier>{0b9c60a9-dcf6-48c0-bb71-b10ae7f299e6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Device-specific files">
+      <UniqueIdentifier>{3f7588e7-a76a-413f-918f-c2760a0275e4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Device-specific files\FreeRTOS">
+      <UniqueIdentifier>{e402728b-ccec-43fd-b7f3-ca0313b5d393}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="VisualGDB settings">
+      <UniqueIdentifier>{ca7b7555-7d3d-4fec-88c6-f80c6dd40f85}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Device-specific files\HAL">
+      <UniqueIdentifier>{f6e3ef72-1c4b-4d81-8a3a-b5873200c335}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Usb">
+      <UniqueIdentifier>{aab9017e-e071-4669-88f7-b1216001d37d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

@@ -1,6 +1,7 @@
 #ifndef NMEA_H
 #define NMEA_H
 
+#include <stm32f4xx_hal.h>
 #include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
@@ -53,7 +54,7 @@ typedef struct
 	NmeaTimeT Time;
 	uint8_t Day;
 	uint8_t Month;
-	uint8_t Year;
+	uint32_t Year;
 	uint8_t Valid;
 } NmeaZdaT;
 
@@ -79,5 +80,6 @@ typedef struct
 uint8_t Nmea0183Init(void);
 void Nmea0183StartParser(void);
 QueueHandle_t* Nmea0183GetQueue(void);
+UART_HandleTypeDef* Nmea0183GetUartHandle(void);
 
 #endif // !NMEA_H

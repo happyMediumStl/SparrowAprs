@@ -1,9 +1,13 @@
 #include <stm32f4xx_hal.h>
 #include <stdio.h>
+#include <string.h>
+#include "Watchdog.h"
 
 static UART_HandleTypeDef UartHandle;
 
 static uint8_t xBuffer[200];
+
+#define MAX_TIMEOUT		2000
 
 // PA2/PA3
 void Dra818Init(void)
@@ -38,10 +42,19 @@ void Dra818Init(void)
 	UartHandle.Init.Mode         = UART_MODE_TX_RX;
 
 	// Commit the USART
-	if(HAL_UART_Init(&UartHandle) != HAL_OK)
+	if (HAL_UART_Init(&UartHandle) != HAL_OK)
 	{
 		while (1) ;
 	}
+}
+
+uint8_t Dra818Connect(void)
+{
+	char command[] = "AT+DMOCONNECT\r\n";
+
+	HAL_UART_Transmit(&UartHandle, (uint8_t*)command, strlen(command), MAX_TIMEOUT);
+
+	return 1;
 }
 
 uint8_t Dra818SetGroup(const uint8_t bw, const float txFreq, const float rxFreq, const char ctcssTx[4], const char ctcssRx[4], const uint8_t squelch)
@@ -49,10 +62,9 @@ uint8_t Dra818SetGroup(const uint8_t bw, const float txFreq, const float rxFreq,
 	uint32_t len;
 
 	// Pack the buffer
-	len = sprintf((char*)&xBuffer, "AT+DMOSETGROUP=%c,%f,%f,%.4s,%c,%.4s\r\n", bw + '0', txFreq, rxFreq, ctcssTx, squelch + '0', ctcssRx);
+	len = sprintf((char*)&xBuffer, "AT+DMOSETGROUP=0,144.390,144.390,0000,5,0000\r\n");
 
-	// Send
 	HAL_UART_Transmit(&UartHandle, xBuffer, len - 1, 5000);
 
-	return 0;
+	return 1;
 }

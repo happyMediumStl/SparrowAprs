@@ -1,10 +1,3 @@
-#include <stm32f4xx_hal.h>
-#include <string.h>
-#include "Queuex.h"
-#include "Helpers.h"
-#include "TokenIterate.h"
-#include "Nmea0183.h"
-
 /*
 	Simple NMEA183 parser
 		-- Chris Seto, 2018
@@ -12,6 +5,13 @@
 	Resources
 		* http://www.gpsinformation.org/dale/nmea.htm
 */
+
+#include <stm32f4xx_hal.h>
+#include <string.h>
+#include "Queuex.h"
+#include "Helpers.h"
+#include "TokenIterate.h"
+#include "Nmea0183.h"
 
 // Sentence processors
 static void ParseGsa(const uint32_t length);
@@ -30,8 +30,10 @@ static uint8_t ExtractInt(TokenIterateT* t, int32_t* x);
 
 typedef struct
 {
+	enum NMEA_MESSAGE_TYPE Type;
 	char Header[5];
 	void(*Processor)(const uint32_t);
+	TickType_t LastMsgTime;
 } NmeaProcessorT;
 
 // Task
@@ -63,10 +65,10 @@ static uint32_t parserState = PARSE_STATE_HEADER;
 // NMEA processors
 #define NMEA_PROCESSOR_COUNT	4
 static NmeaProcessorT processors[NMEA_PROCESSOR_COUNT] = {
-	{ "GNGSA", ParseGsa },
-	{ "GNGGA", ParseGga },
-	{ "GNRMC", ParseRmc },
-	{ "GNZDA", ParseZda }
+	{ NMEA_MESSAGE_TYPE_GSA, "GNGSA", ParseGsa, 0 },
+	{ NMEA_MESSAGE_TYPE_GGA, "GNGGA", ParseGga, 0 },
+	{ NMEA_MESSAGE_TYPE_RMC, "GNRMC", ParseRmc, 0 },
+	{ NMEA_MESSAGE_TYPE_ZDA, "GNZDA", ParseZda, 0 }
 };
 
 // Peripheral handles
@@ -130,7 +132,7 @@ static void InitUart(void)
 	HAL_UART_Receive_DMA(&UartHandle, (uint8_t*)&dmaBuffer, DMA_BUFFER_SIZE);
 }
 
-UART_HandleTypeDef* GetUartHandle(void)
+UART_HandleTypeDef* Nmea0183GetUartHandle(void)
 {
 	return &UartHandle;
 }
@@ -160,7 +162,7 @@ void Nmea0183StartParser(void)
 		"Nmea0183ParserTask",
 		256,
 		NULL,
-		tskIDLE_PRIORITY,
+		6,
 		&idleTaskHandle);
 }
 
@@ -326,6 +328,9 @@ static void ProcessSentence(const uint32_t length)
 			// Call the processor
 			processors[i].Processor(length);
 
+			// Set the last update time
+			processors[i].LastMsgTime = xTaskGetTickCount();
+
 			return;
 		}
 	}
@@ -484,7 +489,6 @@ static uint8_t ExtractFloat(TokenIterateT* t, float* x)
 
 	return 1;
 }
-
 
 // Extract int
 static uint8_t ExtractInt(TokenIterateT* t, int32_t* x)
@@ -681,7 +685,7 @@ static void ParseZda(const uint32_t length)
 	}
 
 	// Year
-	if (!ExtractByteInt(&t, (int8_t*)&msg.Zda.Year))
+	if (!ExtractInt(&t, (int32_t*)&msg.Zda.Year))
 	{
 		msg.Zda.Valid = 0;
 	}

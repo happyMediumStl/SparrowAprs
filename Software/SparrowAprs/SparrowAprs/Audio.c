@@ -72,15 +72,15 @@ static void DacInit(void)
 	// DMA1 channel 7 stream 6
 	dmaOutHandle.Instance					= DMA1_Stream5;
 	dmaOutHandle.Init.Channel				= DMA_CHANNEL_7;
-	dmaOutHandle.Init.Direction			= DMA_MEMORY_TO_PERIPH;
-	dmaOutHandle.Init.PeriphInc			= DMA_PINC_DISABLE;
+	dmaOutHandle.Init.Direction				= DMA_MEMORY_TO_PERIPH;
+	dmaOutHandle.Init.PeriphInc				= DMA_PINC_DISABLE;
 	dmaOutHandle.Init.MemInc				= DMA_MINC_ENABLE;
 	dmaOutHandle.Init.PeriphDataAlignment	= DMA_PDATAALIGN_BYTE;
 	dmaOutHandle.Init.MemDataAlignment		= DMA_MDATAALIGN_BYTE;
 	dmaOutHandle.Init.Mode					= DMA_NORMAL;
 	dmaOutHandle.Init.Priority				= DMA_PRIORITY_HIGH;
 	dmaOutHandle.Init.FIFOMode				= DMA_FIFOMODE_DISABLE;         
-	dmaOutHandle.Init.FIFOThreshold		= DMA_FIFO_THRESHOLD_HALFFULL;
+	dmaOutHandle.Init.FIFOThreshold			= DMA_FIFO_THRESHOLD_HALFFULL;
 	dmaOutHandle.Init.MemBurst				= DMA_MBURST_SINGLE;
 	dmaOutHandle.Init.PeriphBurst			= DMA_PBURST_SINGLE; 
 	HAL_DMA_Init(&dmaOutHandle);
@@ -136,15 +136,15 @@ static void AdcInit(void)
 	// DMA1 channel 7 stream 6
 	dmaInHandle.Instance					= DMA2_Stream0;
 	dmaInHandle.Init.Channel				= DMA_CHANNEL_2;
-	dmaInHandle.Init.Direction			= DMA_PERIPH_TO_MEMORY;
-	dmaInHandle.Init.PeriphInc			= DMA_PINC_DISABLE;
-	dmaInHandle.Init.MemInc				= DMA_MINC_ENABLE;
+	dmaInHandle.Init.Direction				= DMA_PERIPH_TO_MEMORY;
+	dmaInHandle.Init.PeriphInc				= DMA_PINC_DISABLE;
+	dmaInHandle.Init.MemInc					= DMA_MINC_ENABLE;
 	dmaInHandle.Init.PeriphDataAlignment	= DMA_PDATAALIGN_BYTE;
 	dmaInHandle.Init.MemDataAlignment		= DMA_MDATAALIGN_BYTE;
-	dmaInHandle.Init.Mode					= DMA_NORMAL;
+	dmaInHandle.Init.Mode					= DMA_CIRCULAR;
 	dmaInHandle.Init.Priority				= DMA_PRIORITY_HIGH;
 	dmaInHandle.Init.FIFOMode				= DMA_FIFOMODE_DISABLE;         
-	dmaInHandle.Init.FIFOThreshold		= DMA_FIFO_THRESHOLD_HALFFULL;
+	dmaInHandle.Init.FIFOThreshold			= DMA_FIFO_THRESHOLD_HALFFULL;
 	dmaInHandle.Init.MemBurst				= DMA_MBURST_SINGLE;
 	dmaInHandle.Init.PeriphBurst			= DMA_PBURST_SINGLE; 
 	HAL_DMA_Init(&dmaInHandle);

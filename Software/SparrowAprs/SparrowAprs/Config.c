@@ -18,7 +18,7 @@ const static ConfigT __ConfigDefaults =
 		11,
 		'/',
 		'O',
-		45000,
+		10000,
 		0
 	}
 };

@@ -1,6 +1,21 @@
 #include <stdint.h>
 #include <stdio.h>
 
+uint8_t Int2HexDigit(const uint8_t x)
+{
+	if (x < 10)
+	{
+		return x + '0';
+	}
+
+	if (x >= 10 && x <= 15)
+	{
+		return x + 'a';
+	}
+
+	return '.';
+}
+
 uint8_t Hex2int(const uint8_t x)
 {
 	if (x >= '0' && x <= '9')

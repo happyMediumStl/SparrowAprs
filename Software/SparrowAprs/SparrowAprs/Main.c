@@ -33,6 +33,8 @@
 #include "FlashConfig.h"
 #include "Watchdog.h"
 #include "Bme280Shim.h"
+#include "UbloxNeo.h"
+#include "Usb.h"
 
 static void SystemClock_Config(void);
 void SystemIdle(void * pvParameters);
@@ -68,25 +70,28 @@ int main(void)
 	}
 
 	// Init config
-	FlashConfigInit();
 	WatchdogFeed();
-
+	FlashConfigInit();
+	
 	// BSP init
 	BspInit();
 
 	// RTC
-	RtcInit();
 	WatchdogFeed();
-
+	RtcInit();
+	
 	// Init BME280
+	WatchdogFeed();
 	Bme280ShimInit();
-	//while (1) ;
+
+	// Init USB
+	UsbInit();
 
 	// Init DRA818
-	Dra818Init();
 	Dra818IoInit();
 	WatchdogFeed();
-
+	Dra818Init();
+	
 	// Init beacon
 	BeaconInit();
 
@@ -94,10 +99,11 @@ int main(void)
 	AudioInit();
 	
 	// Init NMEA
-	Nmea0183Init();
 	WatchdogFeed();
-
+	Nmea0183Init();
+	
 	// Init radio
+	WatchdogFeed();
 	RadioInit();
 
 	// Start system idle
@@ -109,9 +115,9 @@ int main(void)
 		&idleTaskHandle);
 
 	// Start nmea parser
-	Nmea0183StartParser();
 	WatchdogFeed();
-
+	Nmea0183StartParser();
+	
 	// Start radio task
 	RadioTaskStart();
 
@@ -135,8 +141,6 @@ void SystemIdle(void * pvParameters)
 
 		// Blink LED
 		LedToggle(LED_1);
-
-		// TODO: Do system health check
 
 		// Wait
 		vTaskDelay(SYSTEM_IDLE_DELAY / portTICK_PERIOD_MS);
@@ -216,7 +220,7 @@ static void SystemClock_Config(void)
 	__HAL_RCC_RTC_CONFIG(RCC_RTCCLKSOURCE_LSI);
 	
 	// STM32F405x/407x/415x/417x Revision Z devices: prefetch is supported
-	if(HAL_GetREVID() == 0x1001)
+	if (HAL_GetREVID() == 0x1001)
 	{
 		// Enable flash prefetch
 		__HAL_FLASH_PREFETCH_BUFFER_ENABLE();

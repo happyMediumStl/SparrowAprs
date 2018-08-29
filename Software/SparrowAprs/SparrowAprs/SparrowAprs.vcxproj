@@ -80,6 +80,14 @@
     <ClCompile Include="TokenIterate.c" />
     <ClCompile Include="Radio.c" />
     <ClCompile Include="UbloxNeo.c" />
+    <ClCompile Include="Usb.c" />
+    <ClCompile Include="Usb\usbd_cdc.c" />
+    <ClCompile Include="Usb\usbd_cdc_if.c" />
+    <ClCompile Include="Usb\usbd_conf.c" />
+    <ClCompile Include="Usb\usbd_core.c" />
+    <ClCompile Include="Usb\usbd_ctlreq.c" />
+    <ClCompile Include="Usb\usbd_desc.c" />
+    <ClCompile Include="Usb\usbd_ioreq.c" />
     <ClCompile Include="Watchdog.c" />
     <ClInclude Include="AfskDefs.h" />
     <ClInclude Include="bme280.h" />
@@ -92,6 +100,16 @@
     <ClInclude Include="Rtc.h" />
     <ClInclude Include="TokenIterate.h" />
     <ClInclude Include="Radio.h" />
+    <ClInclude Include="UbloxNeo.h" />
+    <ClInclude Include="Usb.h" />
+    <ClInclude Include="Usb\usbd_cdc.h" />
+    <ClInclude Include="Usb\usbd_cdc_if.h" />
+    <ClInclude Include="Usb\usbd_conf.h" />
+    <ClInclude Include="Usb\usbd_core.h" />
+    <ClInclude Include="Usb\usbd_ctlreq.h" />
+    <ClInclude Include="Usb\usbd_def.h" />
+    <ClInclude Include="Usb\usbd_desc.h" />
+    <ClInclude Include="Usb\usbd_ioreq.h" />
     <ClInclude Include="Watchdog.h" />
     <None Include="stm32.props" />
     <None Include="$(BSP_ROOT)\FreeRTOS\License\license.txt" />
@@ -334,5 +352,9 @@
     <ClInclude Include="$(BSP_ROOT)\STM32F4xxxx\CMSIS_HAL\Include\core_sc000.h" />
     <ClInclude Include="$(BSP_ROOT)\STM32F4xxxx\CMSIS_HAL\Include\core_sc300.h" />
     <ClInclude Include="$(BSP_ROOT)\STM32F4xxxx\CMSIS_HAL\RTOS\Template\cmsis_os.h" />
+    <None Include="$(BSP_ROOT)\FreeRTOS\Source\readme.txt" />
+    <None Include="$(BSP_ROOT)\FreeRTOS\Source\st_readme.txt" />
+    <ClCompile Include="$(BSP_ROOT)\FreeRTOS\Source\CMSIS_RTOS\cmsis_os.c" />
+    <ClInclude Include="$(BSP_ROOT)\FreeRTOS\Source\CMSIS_RTOS\cmsis_os.h" />
   </ItemGroup>
 </Project>

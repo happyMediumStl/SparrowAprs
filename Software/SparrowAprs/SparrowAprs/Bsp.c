@@ -6,14 +6,17 @@ static DMA_HandleTypeDef dmaHandle;
 static ADC_HandleTypeDef adcHandle;
 
 // DMA Sample buffer
-#define ADC_SAMPLE_BUFFER_SIZE		32
-#define TEMP_COUNT					16
-#define VSENSE_COUNT				16
+// This buffer is divided into two parts, so we cleverly treat it as a double buffer
+#define ADC_SAMPLE_BUFFER_SIZE		32*2	// Buffer of size 32, times two because double buffer
+#define TEMP_COUNT					16		// 16 samples in each buffer
+#define VSENSE_COUNT				16		// 16 samples in each buffer
 static volatile uint16_t bspAdcBuffer[ADC_SAMPLE_BUFFER_SIZE];
 
 // Input voltage sense
 static volatile uint32_t vSenseAccumulator = 0;
 static volatile uint32_t tSenseAccumulator = 0;
+
+static void ConvertBspMeasurments(const uint32_t bufferOffset);
 
 // ADC calibration slope. Store it so we only calculate it once
 static float tSlope = 0;
@@ -78,7 +81,7 @@ void BspInit(void)
 	adcHandle.Init.ExternalTrigConv      = ADC_SOFTWARE_START;
 	adcHandle.Init.DataAlign             = ADC_DATAALIGN_RIGHT;
 	adcHandle.Init.NbrOfConversion       = 2;
-	adcHandle.Init.DMAContinuousRequests = DISABLE;
+	adcHandle.Init.DMAContinuousRequests = ENABLE;
 	adcHandle.Init.EOCSelection          = DISABLE;
 	HAL_ADC_Init(&adcHandle);
 
@@ -106,7 +109,7 @@ void BspInit(void)
 	dmaHandle.Init.MemInc				= DMA_MINC_ENABLE;
 	dmaHandle.Init.PeriphDataAlignment	= DMA_PDATAALIGN_HALFWORD;
 	dmaHandle.Init.MemDataAlignment		= DMA_MDATAALIGN_HALFWORD;
-	dmaHandle.Init.Mode					= DMA_NORMAL;
+	dmaHandle.Init.Mode					= DMA_CIRCULAR;
 	dmaHandle.Init.Priority				= DMA_PRIORITY_HIGH;
 	dmaHandle.Init.FIFOMode				= DMA_FIFOMODE_DISABLE;         
 	dmaHandle.Init.FIFOThreshold		= DMA_FIFO_THRESHOLD_HALFFULL;
@@ -125,7 +128,7 @@ void BspInit(void)
 }
 
 // Process raw data from the ADC DMA buffer
-static void ConvertBspMeasurments(void)
+static void ConvertBspMeasurments(const uint32_t bufferOffset)
 {
 	uint32_t tempAccumulator = 0;
 	uint32_t i = 0;
@@ -133,7 +136,7 @@ static void ConvertBspMeasurments(void)
 	// Extract VSense samples
 	for (i = 0; i < VSENSE_COUNT; i++)
 	{
-		tempAccumulator += bspAdcBuffer[(i * 2) + 0];
+		tempAccumulator += bspAdcBuffer[bufferOffset + (i * 2) + 0];
 	}
 
 	vSenseAccumulator = tempAccumulator;
@@ -142,33 +145,32 @@ static void ConvertBspMeasurments(void)
 	// Extract onboard temperature sensor values
 	for (i = 0; i < TEMP_COUNT; i++)
 	{
-		tempAccumulator += bspAdcBuffer[(i * 2) + 1];
+		tempAccumulator += bspAdcBuffer[bufferOffset + (i * 2) + 1];
 	}
 
 	tSenseAccumulator = tempAccumulator;
 	tempAccumulator = 0;
 }
 
-// Handle Audio Out DMA
+// Handle BSP analog sense
 void DMA2_Stream4_IRQHandler(void)
 {
+	// Handle half transfer complete
+	if(__HAL_DMA_GET_FLAG(&dmaHandle, DMA_FLAG_HTIF0_4))
+	{
+		__HAL_DMA_CLEAR_FLAG(&dmaHandle, DMA_FLAG_HTIF0_4);
+
+		// Convert the first half of the buffer
+		ConvertBspMeasurments(0);
+	}
+
 	// Handle transfer complete
 	if(__HAL_DMA_GET_FLAG(&dmaHandle, DMA_FLAG_TCIF0_4))
 	{
 		__HAL_DMA_CLEAR_FLAG(&dmaHandle, DMA_FLAG_TCIF0_4);
 
-		// Transfer is complete, process the samples
-		ConvertBspMeasurments();
-
-		// Start the next round of conversions
-		HAL_ADC_Stop_DMA(&adcHandle);
-		HAL_ADC_Start_DMA(&adcHandle, (uint32_t*)bspAdcBuffer, ADC_SAMPLE_BUFFER_SIZE);
-	}
-
-	// Handle half transfer complete
-	if(__HAL_DMA_GET_FLAG(&dmaHandle, DMA_FLAG_HTIF0_4))
-	{
-		__HAL_DMA_CLEAR_FLAG(&dmaHandle, DMA_FLAG_HTIF0_4);
+		// Transfer is complete, process the latter half of the buffer
+		ConvertBspMeasurments(ADC_SAMPLE_BUFFER_SIZE / 2);
 	}
 
 	// Handle transfer error 

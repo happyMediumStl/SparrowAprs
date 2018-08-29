@@ -15,6 +15,7 @@
 #include "Rtc.h"
 #include "time.h"
 #include "Radio.h"
+#include "Watchdog.h"
 
 // Message output queue
 static QueueHandle_t txQueue;
@@ -33,19 +34,6 @@ static uint8_t ax25Buffer[AX25_BUFFER_SIZE];
 
 void RadioInit(void)
 {
-	// Take DRA818 out of powerdown
-	//Dra818IoPowerUp();
-
-	//vTaskDelay(50 / portTICK_PERIOD_MS);
-
-	// Configure the radio
-	//Dra818SetGroup(0, 144.390, 144.390, "0000", "0000", 4);
-
-	//vTaskDelay(50 / portTICK_PERIOD_MS);
-
-	// Set RF power
-	//Dra818IoSetLowRfPower();
-
 	// Init queues
 	txQueue = xQueueCreate(10, sizeof(RadioPacketT));
 	rxQueue = xQueueCreate(10, sizeof(RadioPacketT));
@@ -68,7 +56,7 @@ void RadioTaskStart(void)
 		"Radio",
 		512,
 		NULL,
-		3,
+		7,
 		&radioTaskHandle);
 }
 
@@ -79,7 +67,21 @@ void RadioTask(void* pvParameters)
 	uint32_t ax25Len;
 	TickType_t lastTaskTime = 0;
 	RadioPacketT packetOut;
+	vTaskDelay(100 / portTICK_PERIOD_MS);
 
+	// Take DRA818 out of powerdown
+	Dra818IoPowerUp();
+
+	WatchdogFeed();
+
+	// Configure the radio
+	Dra818SetGroup(0, 144.390, 144.390, "0000", "0000", 4);
+
+	WatchdogFeed();
+
+	// Set RF power
+	Dra818IoSetLowRfPower();
+	
 	// Airtime / radio management loop
 	while (1)
 	{

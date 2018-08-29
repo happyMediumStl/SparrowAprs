@@ -21,14 +21,25 @@
 #include "FlashConfig.h"
 #include "Bme280Shim.h"
 #include "Bsp.h"
+#include "UbloxNeo.h"
 
-#define MAX_TIME_DELTA	5
+// Max difference between RTC and GPS time allowed in S
+#define MAX_TIME_DELTA			5
 
+// Max GPS packet timeout before we reconfigure in mS
+#define MAX_GPS_TIMEOUT			5000
+#define GPS_RECONFIGURE_TIMEOUT	5000
+
+// APRS packet buffer
 #define PACKET_BUFFER_SIZE		500
 static uint8_t aprsBuffer[PACKET_BUFFER_SIZE];
 
 void BeaconTask(void* pvParameters);
 static TaskHandle_t beaconTaskHandle = NULL;
+
+static TickType_t lastGga = 0;
+static TickType_t lastZda = 0;
+static TickType_t lastRmc = 0;
 
 struct
 {
@@ -36,6 +47,8 @@ struct
 	float Altitude;
 	float Speed;
 	float Track;
+	float LastTrack;
+	float LastSpeed;
 } beaconInfo;
 
 void BeaconInit(void)
@@ -49,12 +62,15 @@ void BeaconStartTask(void)
 		"Beacon",
 		512,
 		NULL,
-		2,
+		3,
 		&beaconTaskHandle);
 }
 
 void HandleNewGga(const NmeaGgaT* gga)
 {
+	// Mark that we did get a packet
+	lastGga = xTaskGetTickCount();
+
 	// Ignore if we have no fix
 	if (gga->Fix == '0')
 	{
@@ -69,6 +85,9 @@ void HandleNewGga(const NmeaGgaT* gga)
 
 void HandleNewRmc(const NmeaRmcT* rmc)
 {
+	// Mark that we did get a packet
+	lastRmc = xTaskGetTickCount();
+
 	// Ignore if we have no fix
 	if (rmc->Fix != 'A')
 	{
@@ -76,7 +95,9 @@ void HandleNewRmc(const NmeaRmcT* rmc)
 	}
 
 	// Exact from the new GPS packet
+	beaconInfo.LastSpeed = beaconInfo.Speed;
 	beaconInfo.Speed = rmc->Speed;
+	beaconInfo.LastTrack = beaconInfo.Track;
 	beaconInfo.Track = rmc->Track;
 }
 
@@ -86,8 +107,11 @@ void HandleNewZda(const NmeaZdaT* zda)
 	time_t gpsTimeStamp;
 	uint32_t currentTime;
 
+	// Mark that we did get a packet
+	lastZda = xTaskGetTickCount();
+
 	// Ignore if we have no fix
-	if (!zda->Valid)
+	if (!zda->Valid || zda->Year == 0)
 	{
 		return;
 	}
@@ -99,12 +123,14 @@ void HandleNewZda(const NmeaZdaT* zda)
 	time.tm_hour = zda->Time.Hour;
 	time.tm_min  = zda->Time.Minute;
 	time.tm_sec  = zda->Time.Second;
-	time.tm_year = zda->Year;
-	time.tm_mon  = zda->Month;
+	time.tm_year = (zda->Year - 1900);
+	time.tm_mon  = (zda->Month - 1);
 	time.tm_mday = zda->Day;
 
 	// Make timestamp from GPS time
 	gpsTimeStamp = mktime(&time);
+
+	printf("(RTC %li) (GPS %li)\r\n", RtcGet(), gpsTimeStamp);
 
 	// If there is more than 5 second difference between our system time and GPS
 	// Because of uint32_t arithmatic, one of these comparsions will always be true if one value is larger than the other
@@ -113,14 +139,65 @@ void HandleNewZda(const NmeaZdaT* zda)
 	{
 		// Set the new system time
 		RtcSet(gpsTimeStamp);
-		printf("Time set!\r\n %lu", gpsTimeStamp);
 	}
 }
 
+#define METERS_TO_FEET	3.28084f
 static float Meters2Feet(const float m)
 {
-	// 10000 ft = 3048 m
-	return m / 0.3048;
+	return m * METERS_TO_FEET;
+}
+
+#define SB_HEADING_SCALE	.5f
+#define SB_SPEED_SCALE		.5f
+
+static uint8_t CalculateSmartBeacon(const uint16_t defaultTime)
+{
+	uint16_t time;
+	float dHeading = 0;
+	float dSpeed = 0;
+
+	// Start with the normal beacon time
+	time = defaultTime;
+
+	// Get the derivative of heading and speed
+	dHeading = fabs(beaconInfo.Track - beaconInfo.LastTrack);
+	dSpeed = fabs(beaconInfo.Speed - beaconInfo.LastSpeed);
+
+	// The greater our dH or dS, the less our beacontime is
+
+
+	// Get our speed
+	return 0;
+}
+
+static uint8_t GpsCheckTimeOut(void)
+{
+	TickType_t timeNow = xTaskGetTickCount();
+
+	if (timeNow - lastGga > MAX_GPS_TIMEOUT)
+	{
+		return 1;
+	}
+
+	if (timeNow - lastRmc > MAX_GPS_TIMEOUT)
+	{
+		return 1;
+	}
+
+	if (timeNow - lastZda > MAX_GPS_TIMEOUT)
+	{
+		return 1;
+	}
+
+	return 0;
+}
+
+static void GpsConfigure(void)
+{
+	UbloxNeoSetOutputRate("ZDA", 2);
+	UbloxNeoSetOutputRate("RMC", 1);
+	UbloxNeoSetOutputRate("GGA", 1);
 }
 
 void BeaconTask(void* pvParameters)
@@ -130,6 +207,7 @@ void BeaconTask(void* pvParameters)
 	QueueHandle_t* txQueue;
 	TickType_t lastTaskTime = 0;
 	TickType_t lastBeaconTime = 0;
+	TickType_t lastCheckForTimeoutTime = 0;
 	uint32_t aprsLength;
 	AprsPositionReportT aprsReport;
 	RadioPacketT beaconPacket;
@@ -171,7 +249,7 @@ void BeaconTask(void* pvParameters)
 						break;
 					
 					// Handle ZDA message
-					case NMEA_MESSAGE_TYPE_ZDA:
+					case NMEA_MESSAGE_TYPE_ZDA :
 						HandleNewZda(&msg.Zda);
 						break;
 
@@ -182,10 +260,21 @@ void BeaconTask(void* pvParameters)
 			}
 		}
 
+		// Check for GPS timeouts
+		if(xTaskGetTickCount() - lastCheckForTimeoutTime > GPS_RECONFIGURE_TIMEOUT)
+		{
+			lastCheckForTimeoutTime = xTaskGetTickCount();
+
+			// If there is a timeout, we'll need to reconfigure
+			if (GpsCheckTimeOut())
+			{
+				GpsConfigure();
+			}
+		}
+
 		// Compute smart beacon period
 		if (config->Aprs.UseSmartBeacon)
 		{
-			// TODO: Smart beacon
 			beaconPeriod = config->Aprs.BeaconPeriod;
 		}
 		else
@@ -222,7 +311,7 @@ void BeaconTask(void* pvParameters)
 			aprsLength += AprsMakeExtCourseSpeed(aprsBuffer + aprsLength, (uint8_t)beaconInfo.Track, (uint16_t)beaconInfo.Speed);
 
 			// Append comment for GPS altitude
-			aprsLength += sprintf((char*)aprsBuffer + aprsLength, "A=%06i", (int32_t)Meters2Feet(beaconInfo.Altitude)) - 1;
+			aprsLength += sprintf((char*)aprsBuffer + aprsLength, "A=%06i", (int)Meters2Feet(beaconInfo.Altitude)) - 1;
 
 			// Get the current environmental data
 			Bme280ShimGetTph(&temperature, &pressure, &humidity);
