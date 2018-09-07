@@ -7,7 +7,10 @@ static UART_HandleTypeDef UartHandle;
 
 static uint8_t xBuffer[200];
 
-#define MAX_TIMEOUT		2000
+#define MAX_TIMEOUT				2000
+#define DRA818_CONNECT_LEN		15
+#define DRA818_GROUP_LEN		46
+#define DRA818_FILTER_LEN		20
 
 // PA2/PA3
 void Dra818Init(void)
@@ -50,21 +53,21 @@ void Dra818Init(void)
 
 uint8_t Dra818Connect(void)
 {
-	char command[] = "AT+DMOCONNECT\r\n";
-
+	char command[DRA818_CONNECT_LEN] = "AT+DMOCONNECT\r\n";
 	HAL_UART_Transmit(&UartHandle, (uint8_t*)command, strlen(command), MAX_TIMEOUT);
-
 	return 1;
 }
 
-uint8_t Dra818SetGroup(const uint8_t bw, const float txFreq, const float rxFreq, const char ctcssTx[4], const char ctcssRx[4], const uint8_t squelch)
+uint8_t Dra818SetGroup(const float txFreq, const float rxFreq, const char ctcssTx[4], const char ctcssRx[4], const uint8_t squelch)
 {
-	uint32_t len;
+	sprintf((char*)&xBuffer, "AT+DMOSETGROUP=0,%03.4f,%03.4f,%.4s,%c,%.4s\r\n", txFreq, rxFreq, ctcssTx, squelch + '0', ctcssRx);
+	HAL_UART_Transmit(&UartHandle, xBuffer, DRA818_GROUP_LEN, MAX_TIMEOUT);
+	return 1;
+}
 
-	// Pack the buffer
-	len = sprintf((char*)&xBuffer, "AT+DMOSETGROUP=0,144.390,144.390,0000,5,0000\r\n");
-
-	HAL_UART_Transmit(&UartHandle, xBuffer, len - 1, 5000);
-
+uint8_t Dra818SetFilter(const uint8_t predeemphasis, const uint8_t highpass, const uint8_t lowpass)
+{
+	sprintf((char*)xBuffer, "AT+SETFILTER=%c,%c,%c\r\n", predeemphasis + '0', highpass + '0', lowpass + '0');
+	HAL_UART_Transmit(&UartHandle, xBuffer, DRA818_FILTER_LEN, MAX_TIMEOUT);
 	return 1;
 }

@@ -60,6 +60,9 @@
     <ClCompile Include="Aprs.c" />
     <ClCompile Include="Bme280Shim.c" />
     <ClCompile Include="CrcCcitt.c" />
+    <ClCompile Include="Fallback.c" />
+    <ClCompile Include="GpsHub.c" />
+    <ClCompile Include="GpsPps.c" />
     <ClCompile Include="Main.c" />
     <ClCompile Include="Audio.c" />
     <ClCompile Include="Ax25.c" />
@@ -97,6 +100,8 @@
     <ClInclude Include="CrcCcitt.h" />
     <ClInclude Include="Dra818.h" />
     <ClInclude Include="FlashConfig.h" />
+    <ClInclude Include="GpsHub.h" />
+    <ClInclude Include="GpsPps.h" />
     <ClInclude Include="Rtc.h" />
     <ClInclude Include="TokenIterate.h" />
     <ClInclude Include="Radio.h" />

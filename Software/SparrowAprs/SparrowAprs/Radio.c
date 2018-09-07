@@ -21,22 +21,29 @@
 static QueueHandle_t txQueue;
 static QueueHandle_t rxQueue;
 
-void RadioTask(void* pvParameters);
 static TaskHandle_t radioTaskHandle = NULL;
 
 // Audio buffers
-#define AUDIO_BUFFER_SIZE		18000
+#define AUDIO_BUFFER_SIZE		22000
 static uint8_t audioOut[AUDIO_BUFFER_SIZE];
 static uint8_t audioIn[AUDIO_BUFFER_SIZE];
 
 #define AX25_BUFFER_SIZE	500
 static uint8_t ax25Buffer[AX25_BUFFER_SIZE];
 
+#define TX_RX_QUEUE_SIZE	10
+
+void RadioTask(void* pvParameters);
+static void Dra818AprsInit(void);
+
+#define PTT_DOWN_DELAY		50
+#define PTT_UP_DELAY		20
+
 void RadioInit(void)
 {
 	// Init queues
-	txQueue = xQueueCreate(10, sizeof(RadioPacketT));
-	rxQueue = xQueueCreate(10, sizeof(RadioPacketT));
+	txQueue = xQueueCreate(TX_RX_QUEUE_SIZE, sizeof(RadioPacketT));
+	rxQueue = xQueueCreate(TX_RX_QUEUE_SIZE, sizeof(RadioPacketT));
 }
 
 QueueHandle_t* RadioGetTxQueue(void)
@@ -54,10 +61,31 @@ void RadioTaskStart(void)
 	// Create task
 	xTaskCreate(RadioTask,
 		"Radio",
-		512,
+		300,
 		NULL,
 		7,
 		&radioTaskHandle);
+}
+
+static void Dra818AprsInit(void)
+{
+	// Bring up the module
+	Dra818IoPowerUp();
+
+	// Wait for the module to init
+	vTaskDelay(1000 / portTICK_PERIOD_MS);
+
+	// Connect (to init the module?)
+	Dra818Connect();
+
+	// Configure group
+	Dra818SetGroup(144.390, 144.390, "0000", "0000", 4);
+
+	// Configure filter
+	Dra818SetFilter(1, 0, 0);
+
+	// Set RF power
+	Dra818IoSetLowRfPower();
 }
 
 // Radio manager task
@@ -67,21 +95,10 @@ void RadioTask(void* pvParameters)
 	uint32_t ax25Len;
 	TickType_t lastTaskTime = 0;
 	RadioPacketT packetOut;
-	vTaskDelay(100 / portTICK_PERIOD_MS);
 
-	// Take DRA818 out of powerdown
-	Dra818IoPowerUp();
+	// Init DRA radio module
+	Dra818AprsInit();
 
-	WatchdogFeed();
-
-	// Configure the radio
-	Dra818SetGroup(0, 144.390, 144.390, "0000", "0000", 4);
-
-	WatchdogFeed();
-
-	// Set RF power
-	Dra818IoSetLowRfPower();
-	
 	// Airtime / radio management loop
 	while (1)
 	{
@@ -96,7 +113,7 @@ void RadioTask(void* pvParameters)
 			{
 				continue;
 			}
-
+			
 			// We have something to transmit, build and encode the packet
 			packetOut.Frame.Path = packetOut.Path;
 			packetOut.Frame.Payload = packetOut.Payload;
@@ -118,14 +135,14 @@ void RadioTask(void* pvParameters)
 			{
 				encodedAudioLength = AUDIO_BUFFER_SIZE;
 			}
-			printf("start\r\n");
 
 			// Start xmit
-			Dra818IoPttOn();
 			LedOn(LED_2);
-
+			Dra818IoPttOn();
+			Dra818IoSetHighRfPower();
+			
 			// Wait to play until after we PTT down
-			vTaskDelay(100 / portTICK_PERIOD_MS);
+			vTaskDelay(PTT_DOWN_DELAY / portTICK_PERIOD_MS);
 
 			// Play audio
 			AudioPlay(audioOut, encodedAudioLength);
@@ -134,13 +151,12 @@ void RadioTask(void* pvParameters)
 			AudioOutWait(portMAX_DELAY);
 
 			// Wait a little longer before we PTT up
-			vTaskDelay(50 / portTICK_PERIOD_MS);
+			vTaskDelay(PTT_UP_DELAY / portTICK_PERIOD_MS);
 
 			// Stop Xmit
 			Dra818IoPttOff();
+			Dra818IoSetLowRfPower();
 			LedOff(LED_2);
-
-			printf("done\r\n");
 		}
 	}
 }

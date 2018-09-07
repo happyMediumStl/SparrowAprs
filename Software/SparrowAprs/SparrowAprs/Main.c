@@ -35,6 +35,7 @@
 #include "Bme280Shim.h"
 #include "UbloxNeo.h"
 #include "Usb.h"
+#include "GpsHub.h"
 
 static void SystemClock_Config(void);
 void SystemIdle(void * pvParameters);
@@ -56,7 +57,7 @@ int main(void)
 	LedOn(LED_1);
 
 	// Init watchdog
-	WatchdogInit();
+	//WatchdogInit();
 	WatchdogFeed();
 	
 	// Init retarget
@@ -79,7 +80,7 @@ int main(void)
 	// RTC
 	WatchdogFeed();
 	RtcInit();
-	
+
 	// Init BME280
 	WatchdogFeed();
 	Bme280ShimInit();
@@ -102,6 +103,9 @@ int main(void)
 	WatchdogFeed();
 	Nmea0183Init();
 	
+	// Init GPS Hub
+	GpsHubInit();
+
 	// Init radio
 	WatchdogFeed();
 	RadioInit();
@@ -115,8 +119,10 @@ int main(void)
 		&idleTaskHandle);
 
 	// Start nmea parser
-	WatchdogFeed();
 	Nmea0183StartParser();
+	
+	// Start GPS hub
+	GpsHubStartTask();
 	
 	// Start radio task
 	RadioTaskStart();
@@ -129,6 +135,19 @@ int main(void)
 
 	// Do nothing
 	while(1);
+}
+
+// Crash handler due to a stack overflow
+void vApplicationStackOverflowHook(xTaskHandle *pxTask, signed char *pcTaskName)
+{
+	printf("Crash!\r\n");
+
+	// If we have crashed too many times, enter fallback mode
+
+	while (1)
+	{
+		
+	}
 }
 
 // System Idle task
@@ -163,6 +182,7 @@ static void SystemClock_Config(void)
 {
 	RCC_ClkInitTypeDef RCC_ClkInitStruct;
 	RCC_OscInitTypeDef RCC_OscInitStruct;
+	RCC_PeriphCLKInitTypeDef PeriphClkInitStruct;
 
 	// Enable clocks
 	__HAL_RCC_PWR_CLK_ENABLE();
@@ -203,7 +223,7 @@ static void SystemClock_Config(void)
 		}
 	}
 
-	// Connect RTC to LSI
+	// Enable LSI for watchdog
 	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSI | RCC_OSCILLATORTYPE_LSE;
 	RCC_OscInitStruct.PLL.PLLState   = RCC_PLL_NONE;
 	RCC_OscInitStruct.LSEState       = RCC_LSE_OFF;
@@ -216,9 +236,16 @@ static void SystemClock_Config(void)
 		}
 	}
 
-	__HAL_RCC_RTC_CLKPRESCALER(RCC_RTCCLKSOURCE_LSI);
-	__HAL_RCC_RTC_CONFIG(RCC_RTCCLKSOURCE_LSI);
-	
+	// Configure HSE to run RTC
+	//HAL_PWR_EnableBkUpAccess();
+	//__HAL_RCC_RTC_CONFIG(RCC_RTCCLKSOURCE_HSE_DIV25);
+	//HAL_PWR_DisableBkUpAccess();
+
+	// Connect HSE/25 to RTC
+	PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_RTC;
+	PeriphClkInitStruct.RTCClockSelection = RCC_RTCCLKSOURCE_HSE_DIV25;
+	HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct);
+
 	// STM32F405x/407x/415x/417x Revision Z devices: prefetch is supported
 	if (HAL_GetREVID() == 0x1001)
 	{

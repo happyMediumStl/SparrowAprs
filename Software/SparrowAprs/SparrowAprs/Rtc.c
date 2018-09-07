@@ -11,6 +11,15 @@
 // Peripheral handles
 static RTC_HandleTypeDef hrtc;
 
+// 1 Mhz clock provided by HSE_DIV25
+#define RTC_PREDIV_A	125
+#define RTC_PREDIV_S	8000
+
+// Unix epoch information
+// STM32 cares about 
+#define MONTH_EPOCH	1
+#define YEAR_EPOCH	(2000 - 1900)
+
 void RtcInit(void)
 {
 	// Enable clocks
@@ -19,8 +28,8 @@ void RtcInit(void)
 	// Configure RTC
 	hrtc.Instance = RTC;
 	hrtc.Init.HourFormat = RTC_HOURFORMAT_24;
-	hrtc.Init.AsynchPrediv = 0x7F;
-	hrtc.Init.SynchPrediv = 0xFF;
+	hrtc.Init.AsynchPrediv = RTC_PREDIV_A - 1;
+	hrtc.Init.SynchPrediv = RTC_PREDIV_S - 1;
 	hrtc.Init.OutPut = RTC_OUTPUT_DISABLE;
 	hrtc.Init.OutPutPolarity = RTC_OUTPUT_POLARITY_HIGH;
 	hrtc.Init.OutPutType = RTC_OUTPUT_TYPE_OPENDRAIN;
@@ -34,27 +43,27 @@ void RtcSet(const uint32_t now)
 {
 	RTC_TimeTypeDef sTime;
 	RTC_DateTypeDef sDate;
-
 	struct tm time_tm;
 	time_tm = *localtime((time_t*)&now);
 
-	// Set time
+	// Configure time
 	sTime.Hours = (uint8_t)time_tm.tm_hour;
 	sTime.Minutes = (uint8_t)time_tm.tm_min;
 	sTime.Seconds = (uint8_t)time_tm.tm_sec;
-	HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
-
+	
 	if (time_tm.tm_wday == 0)
 	{
 		time_tm.tm_wday = 7;
 	}
 
-	// Set date
+	// Configure date
 	sDate.WeekDay = (uint8_t)time_tm.tm_wday;
-	sDate.Month = (uint8_t)time_tm.tm_mon + 1;
+	sDate.Month = (uint8_t)time_tm.tm_mon + MONTH_EPOCH;
 	sDate.Date = (uint8_t)time_tm.tm_mday;
 	sDate.Year = (uint16_t)(time_tm.tm_year + 1900 - 2000);
 
+	// Set RTC
+	HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
 	HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
 
 	// Indicate that the RTC now contains a valid time
@@ -80,7 +89,7 @@ uint32_t RtcGet(void)
 
 	// Configure the struct
 	tim.tm_year = (uint16_t)(rtcDate.Year + 2000 - 1900);
-	tim.tm_mon  = rtcDate.Month - 1;
+	tim.tm_mon  = rtcDate.Month - MONTH_EPOCH;
 	tim.tm_mday = rtcDate.Date;
 	tim.tm_hour = rtcTime.Hours;
 	tim.tm_min  = rtcTime.Minutes;

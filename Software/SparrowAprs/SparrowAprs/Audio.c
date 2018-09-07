@@ -6,6 +6,7 @@
 #include <stm32f4xx_hal.h>
 #include "FreeRTOS.h"
 #include "semphr.h"
+#include "Audio.h"
 
 // Peripheral handles
 static DMA_HandleTypeDef dmaInHandle;
@@ -195,10 +196,12 @@ void AudioPlay(const uint8_t* buffer, const uint32_t len)
 	HAL_DAC_Stop_DMA(&dacHandle, DAC_CHANNEL_1);
 
 	// We already killed audio out, so just take the semiphore no matter what
-	if (xSemaphoreTake(audioOutSemiphore, 0) == pdFALSE)
+	if (AudioIsPlaying())
 	{
 		xSemaphoreGive(audioOutSemiphore);
 	}
+
+	xSemaphoreTake(audioOutSemiphore, 0);
 
 	// Start
 	HAL_DAC_Start_DMA(&dacHandle, DAC_CHANNEL_1, (uint32_t*)buffer, len, DAC_ALIGN_8B_R);

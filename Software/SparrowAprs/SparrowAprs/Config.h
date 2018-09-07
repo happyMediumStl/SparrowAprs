@@ -25,7 +25,12 @@ typedef struct
 		uint8_t Symbol;
 		uint32_t BeaconPeriod;
 		uint8_t UseSmartBeacon;
-		
+		uint32_t SmartBeaconMinimumBeaconPeriod;
+		float SmartBeaconHeadingTuning;
+		float SmartBeaconSpeedTuning;
+		float SmartBeaconWeightSpeed;
+		float SmartBeaconWeightdSpeed;
+		float SmartBeaconWeightdHeading;
 	} Aprs;
 } ConfigT;
 

@@ -109,6 +109,12 @@ uint32_t AfskHdlcEncode(const uint8_t* data, const uint32_t len, const uint32_t 
 		}
 	}
 
+	// Cap the DAC with zero value
+	if (sampleSize < maxLen)
+	{
+		afskOut[sampleSize++] = 0;
+	}
+
 	// Return back the actual size of the encoded buffer
 	return sampleSize;
 }

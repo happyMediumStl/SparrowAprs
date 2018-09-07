@@ -147,6 +147,8 @@ uint8_t Nmea0183Init(void)
 		return 0;
 	}
 
+	QueueInit(&nmeaQueue, nmeaBuffer, NMEA_BUFFER_SIZE);
+
 	// Start serial port
 	InitUart();
 
@@ -155,8 +157,6 @@ uint8_t Nmea0183Init(void)
 
 void Nmea0183StartParser(void)
 {
-	QueueInit(&nmeaQueue, nmeaBuffer, NMEA_BUFFER_SIZE);
-
 	// Start Task
 	xTaskCreate(Nmea0183Task,
 		"Nmea0183ParserTask",
@@ -395,7 +395,7 @@ static uint8_t ExtractPosition(TokenIterateT* t, NmeaPositionT* pos)
 {
 	uint8_t* token;
 	uint32_t tokenLength;
-
+	
 	int deg = 0;
 	float min = 0;
 	uint8_t dir = '-';
@@ -593,7 +593,7 @@ static void ParseRmc(const uint32_t length)
 
 	// Date
 	ExtractDate(&t, &msg.Rmc.Date);
-
+	
 	// Try to queue it
 	xQueueSendToBack(NmeaMessageQueue, &msg, 0);
 }
