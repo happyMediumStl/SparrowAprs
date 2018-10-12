@@ -1,7 +1,7 @@
 /*
-	If the board experinces continued crashed, enter CW fallback mode
+	If the board experinces continued crashes, enter CW fallback mode
 
-	In this mode, we will go to ap redefined freq and transmit CW at a 50% duty cycle
+	In this mode, we will go to ap redefined freq and transmit for foxhunting
 
 */
 
@@ -12,4 +12,8 @@ void FallBackEnter(void)
 	// Reconfigure radio to the fallback freq
 
 	// Transmit CW
+	while(1)
+	{
+
+	}
 }

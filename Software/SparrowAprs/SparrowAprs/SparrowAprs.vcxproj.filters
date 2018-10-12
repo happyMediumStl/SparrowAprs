@@ -400,13 +400,7 @@
     <ClCompile Include="Usb\usbd_desc.c">
       <Filter>Usb</Filter>
     </ClCompile>
-    <ClCompile Include="GpsPps.c">
-      <Filter>Project</Filter>
-    </ClCompile>
     <ClCompile Include="GpsHub.c">
-      <Filter>Project</Filter>
-    </ClCompile>
-    <ClCompile Include="Fallback.c">
       <Filter>Project</Filter>
     </ClCompile>
   </ItemGroup>
@@ -902,9 +896,6 @@
     </ClInclude>
     <ClInclude Include="Usb.h">
       <Filter>Usb</Filter>
-    </ClInclude>
-    <ClInclude Include="GpsPps.h">
-      <Filter>Project</Filter>
     </ClInclude>
     <ClInclude Include="GpsHub.h">
       <Filter>Project</Filter>

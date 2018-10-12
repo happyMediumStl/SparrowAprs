@@ -142,11 +142,8 @@ void vApplicationStackOverflowHook(xTaskHandle *pxTask, signed char *pcTaskName)
 {
 	printf("Crash!\r\n");
 
-	// If we have crashed too many times, enter fallback mode
-
 	while (1)
 	{
-		
 	}
 }
 
@@ -165,6 +162,7 @@ void SystemIdle(void * pvParameters)
 		vTaskDelay(SYSTEM_IDLE_DELAY / portTICK_PERIOD_MS);
 	}
 }
+
 
 // Handle systick
 void SysTick_Handler(void)
@@ -235,11 +233,6 @@ static void SystemClock_Config(void)
 		{
 		}
 	}
-
-	// Configure HSE to run RTC
-	//HAL_PWR_EnableBkUpAccess();
-	//__HAL_RCC_RTC_CONFIG(RCC_RTCCLKSOURCE_HSE_DIV25);
-	//HAL_PWR_DisableBkUpAccess();
 
 	// Connect HSE/25 to RTC
 	PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_RTC;

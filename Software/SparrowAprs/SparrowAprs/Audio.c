@@ -1,8 +1,3 @@
-/*
-	Audio input/output driver
-		-- Chris Seto, 2018
-*/
-
 #include <stm32f4xx_hal.h>
 #include "FreeRTOS.h"
 #include "semphr.h"

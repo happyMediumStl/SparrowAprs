@@ -462,6 +462,7 @@ static uint8_t ExtractChar(TokenIterateT* t, uint8_t* c)
 	// Check length
 	if (tokenLength != 1)
 	{
+		*c = 0;
 		return 0;
 	}
 
@@ -482,6 +483,7 @@ static uint8_t ExtractFloat(TokenIterateT* t, float* x)
 	// Check length
 	if (tokenLength == 0)
 	{
+		*x = 0;
 		return 0;
 	}
 
@@ -502,6 +504,7 @@ static uint8_t ExtractInt(TokenIterateT* t, int32_t* x)
 	// Check length
 	if (tokenLength == 0)
 	{
+		*x = 0;
 		return 0;
 	}
 
@@ -522,6 +525,7 @@ static uint8_t ExtractByteInt(TokenIterateT* t, int8_t* x)
 	// Check length
 	if(tokenLength == 0)
 	{
+		*x = 0;
 		return 0;
 	}
 

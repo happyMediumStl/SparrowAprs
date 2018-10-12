@@ -108,3 +108,13 @@ int32_t atoil(const uint8_t* buffer, const uint32_t length)
   
 	return res * sign;
 }
+
+uint8_t IsAscii(const uint8_t x)
+{
+	if (x >= '!' && x <= '~')
+	{
+		return 1;
+	}
+
+	return 0;
+}

@@ -174,8 +174,6 @@ void BeaconTask(void* pvParameters)
 		memcpy(beaconPacket.Payload, aprsBuffer, aprsLength);
 		beaconPacket.Frame.PayloadLength = aprsLength;
 
-		printf("(!!): %.*s\r\n", (int)aprsLength, aprsBuffer);
-
 		// Enqueue the packet in the transmit buffer
 		xQueueSendToBack(txQueue, &beaconPacket, 0);
 	}

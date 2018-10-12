@@ -9,7 +9,7 @@ static uint8_t xBuffer[200];
 
 #define MAX_TIMEOUT				2000
 #define DRA818_CONNECT_LEN		15
-#define DRA818_GROUP_LEN		46
+#define DRA818_GROUP_LEN		48
 #define DRA818_FILTER_LEN		20
 
 // PA2/PA3

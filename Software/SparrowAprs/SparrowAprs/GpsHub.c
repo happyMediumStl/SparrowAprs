@@ -9,6 +9,7 @@
 #include "time.h"
 #include "UbloxNeo.h"
 #include "GpsHub.h"
+#include "Helpers.h"
 
 // Max difference between RTC and GPS time allowed in S
 #define MAX_TIME_DELTA			5
@@ -93,6 +94,7 @@ void HandleNewZda(const NmeaZdaT* zda)
 	{
 		// Set the new system time
 		RtcSet(gpsTimeStamp);
+		printf("Set RTC\r\n");
 	}
 }
 
@@ -148,8 +150,8 @@ static void GpsHubTask(void* pvParameters)
 						// Mark that we did get a packet
 						lastGga = timeNow;
 
-						// Ignore if we have no fix
-						if(msg.Gga.Fix == '0')
+						// Ignore if we have no fix or if the fix is not present
+						if (!IsAscii(msg.Gga.Fix) || msg.Gga.Fix <= '0')
 						{
 							continue;
 						}

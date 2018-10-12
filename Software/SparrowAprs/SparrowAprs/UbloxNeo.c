@@ -30,7 +30,7 @@ static uint8_t NmeaInsertChecksum(uint8_t* buffer, const uint32_t length)
 		return 0;
 	}
 
-	// Insert the checksum (high hibble first)
+	// Insert the checksum (high nibble first)
 	buffer[i++] = Int2HexDigit((checksum >> 4) & 0x0f);
 	buffer[i++] = Int2HexDigit(checksum & 0x0f);
 

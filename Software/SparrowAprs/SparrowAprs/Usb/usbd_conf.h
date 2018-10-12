@@ -57,7 +57,7 @@
 #define USBD_MAX_STR_DESC_SIZ                 0x100
 #define USBD_SUPPORT_USER_STRING              0 
 #define USBD_SELF_POWERED                     1
-#define USBD_DEBUG_LEVEL                      2
+#define USBD_DEBUG_LEVEL                      5
 
 /* MSC Class Config */
 #define MSC_MEDIA_PACKET                       8192   

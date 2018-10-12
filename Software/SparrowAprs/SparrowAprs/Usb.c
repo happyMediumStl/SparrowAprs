@@ -14,7 +14,6 @@ void UsbInit(void)
 	USBD_RegisterClass(&USBD_Device, USBD_CDC_CLASS);
 	USBD_CDC_RegisterInterface(&USBD_Device, &USBD_CDC_Template_fops);
 	USBD_Start(&USBD_Device);
-
 }
 
 void OTG_FS_IRQHandler(void)

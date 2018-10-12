@@ -14,7 +14,7 @@
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{79A49B56-1FB7-491D-A0AB-E5FC21742B7F}</ProjectGuid>
     <BSP_ID>com.sysprogs.arm.stm32</BSP_ID>
-    <BSP_VERSION>4.7R3</BSP_VERSION>
+    <BSP_VERSION>2018.08</BSP_VERSION>
     <InPlaceBSPSubdir />
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -60,9 +60,7 @@
     <ClCompile Include="Aprs.c" />
     <ClCompile Include="Bme280Shim.c" />
     <ClCompile Include="CrcCcitt.c" />
-    <ClCompile Include="Fallback.c" />
     <ClCompile Include="GpsHub.c" />
-    <ClCompile Include="GpsPps.c" />
     <ClCompile Include="Main.c" />
     <ClCompile Include="Audio.c" />
     <ClCompile Include="Ax25.c" />
@@ -101,7 +99,6 @@
     <ClInclude Include="Dra818.h" />
     <ClInclude Include="FlashConfig.h" />
     <ClInclude Include="GpsHub.h" />
-    <ClInclude Include="GpsPps.h" />
     <ClInclude Include="Rtc.h" />
     <ClInclude Include="TokenIterate.h" />
     <ClInclude Include="Radio.h" />

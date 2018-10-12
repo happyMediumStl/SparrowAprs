@@ -73,13 +73,15 @@ static void Dra818AprsInit(void)
 	Dra818IoPowerUp();
 
 	// Wait for the module to init
-	vTaskDelay(1000 / portTICK_PERIOD_MS);
+	vTaskDelay(100 / portTICK_PERIOD_MS);
 
 	// Connect (to init the module?)
 	Dra818Connect();
+	vTaskDelay(100 / portTICK_PERIOD_MS);
 
 	// Configure group
-	Dra818SetGroup(144.390, 144.390, "0000", "0000", 4);
+	Dra818SetGroup(144.390, 144.390, "0000", "0000", 8);
+	vTaskDelay(100 / portTICK_PERIOD_MS);
 
 	// Configure filter
 	Dra818SetFilter(1, 0, 0);
@@ -113,6 +115,8 @@ void RadioTask(void* pvParameters)
 			{
 				continue;
 			}
+
+			printf("[TX] %.*s\r\n", (int)packetOut.Frame.PayloadLength, packetOut.Payload);
 			
 			// We have something to transmit, build and encode the packet
 			packetOut.Frame.Path = packetOut.Path;

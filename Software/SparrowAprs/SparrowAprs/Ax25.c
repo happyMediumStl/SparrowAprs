@@ -1,8 +1,3 @@
-/*
-	Simple Ax25 Packet Generator
-
-*/
-
 #include <stdint.h>
 #include <string.h>
 #include "Ax25.h"
@@ -67,6 +62,7 @@ uint32_t Ax25BuildUnPacket(const Ax25FrameT* frame, uint8_t* outputBuffer)
 
 	// Compute the checksum
 	crc = CrcCcitt(outputBuffer + frame->PreFlagCount, outputBufferPtr - frame->PreFlagCount);
+
 	outputBuffer[outputBufferPtr++] = crc;
 	outputBuffer[outputBufferPtr++] = (crc >> 8);
 
